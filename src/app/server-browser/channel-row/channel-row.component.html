@@ -1,0 +1,16 @@
+<div class="channel-row">
+  <div class="row-header">
+    <p>{{channelInfo.title}}</p>
+    <div>
+      <ng-container *ngFor="let icon of channelInfo.icons">
+        <!-- icon goes here -->
+      </ng-container>
+    </div>
+  </div>
+  <ng-container *ngFor="let user of users">
+    <user-row></user-row>
+  </ng-container>
+  <ng-container *ngFor="let channel of channelInfo.childChannels">
+    <channel-row></channel-row>
+  </ng-container>
+</div>
