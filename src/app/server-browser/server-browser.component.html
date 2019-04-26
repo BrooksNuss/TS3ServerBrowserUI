@@ -1,5 +1,5 @@
 <div class="server-browser-container">
   <ng-container *ngFor="let channel of channels">
-    <channel-row></channel-row>
+    <channel-row [channelInfo]="channel"></channel-row>
   </ng-container>
 </div>

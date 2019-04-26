@@ -1,10 +1,12 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http';
 
 import { AppComponent } from './app.component';
 import { UserRowComponent } from './server-browser/user-row/user-row.component';
 import { ServerBrowserComponent } from './server-browser/server-browser.component';
 import { ChannelRowComponent } from './server-browser/channel-row/channel-row.component';
+import { ServerBrowserService } from './server-browser/server-browser.service';
 
 @NgModule({
   declarations: [
@@ -14,9 +16,12 @@ import { ChannelRowComponent } from './server-browser/channel-row/channel-row.co
     UserRowComponent
   ],
   imports: [
-    BrowserModule
+    BrowserModule,
+    HttpClientModule
   ],
-  providers: [],
+  providers: [
+    ServerBrowserService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
