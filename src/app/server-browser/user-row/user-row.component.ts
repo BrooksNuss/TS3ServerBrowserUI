@@ -1,4 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
+import { ListUserResponse } from '../models/listUserResponse';
 
 @Component({
   selector: 'user-row',
@@ -6,7 +7,7 @@ import { Component, OnInit, Input } from '@angular/core';
   styleUrls: ['./user-row.component.scss']
 })
 export class UserRowComponent implements OnInit {
-  @Input() userInfo: any;
+  @Input() userInfo: ListUserResponse;
 
   constructor() { }
 

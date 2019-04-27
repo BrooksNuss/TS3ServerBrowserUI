@@ -1,8 +1,9 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { ServerBrowserService } from './server-browser.service';
-import TeamSpeakClient from 'ts3-nodejs-library/property/Client';
-import TeamSpeakChannel from 'ts3-nodejs-library/property/Channel';
 import { forkJoin } from 'rxjs';
+import { ListUserResponse } from './models/listUserResponse';
+import { Channel } from './models/Channel';
+import { User } from './models/User';
 
 @Component({
   selector: 'server-browser',
@@ -10,22 +11,20 @@ import { forkJoin } from 'rxjs';
   styleUrls: ['./server-browser.component.scss']
 })
 export class ServerBrowserComponent implements OnInit {
-  channels = [];
-  users = [];
+  channels: Channel[] = [];
+  users: User[] = [];
   constructor(private sbs: ServerBrowserService) { }
 
   ngOnInit() {
     const channelsReq = this.sbs.getChannelList();
     const usersReq = this.sbs.getUserList();
     forkJoin(channelsReq, usersReq).subscribe(values => {
-      this.channels = values[0];
-      this.users = values[1];
-      // temporary code until response models are made
-      this.channels.forEach(channel => {
-        channel.users = [];
+      values[0].forEach(value => {
+        this.channels.push({channelInfo: value, users: []});
       });
-      this.users.forEach(user => {
-        this.channels.find(channel => channel.cid === user.cid).users.push(user);
+      values[1].forEach(user => {
+        this.users.push({userInfo: user});
+        this.channels.find(channel => channel.channelInfo.cid === user.cid).users.push(user);
       });
     });
   }
