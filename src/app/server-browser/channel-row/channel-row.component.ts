@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { ListUserResponse } from '../models/listUserResponse';
 import { ListChannelResponse } from '../models/ListChannelResponse';
+import { User } from '../models/User';
 
 @Component({
   selector: 'channel-row',
@@ -9,7 +9,7 @@ import { ListChannelResponse } from '../models/ListChannelResponse';
 })
 export class ChannelRowComponent implements OnInit {
   @Input() channelInfo: ListChannelResponse;
-  @Input() users: ListUserResponse[] = [];
+  @Input() users: User[] = [];
   constructor() { }
 
   ngOnInit() {

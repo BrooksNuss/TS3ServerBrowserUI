@@ -6,21 +6,30 @@ import { AppComponent } from './app.component';
 import { UserRowComponent } from './server-browser/user-row/user-row.component';
 import { ServerBrowserComponent } from './server-browser/server-browser.component';
 import { ChannelRowComponent } from './server-browser/channel-row/channel-row.component';
-import { ServerBrowserService } from './server-browser/server-browser.service';
+import { ServerBrowserService } from './server-browser/services/server-browser.service';
+import { SocketIoModule } from 'ngx-socket-io';
+import { environment } from 'src/environments/environment';
+import { ServerBrowserCacheService } from './server-browser/services/server-browser-cache.service';
+import { TeamspeakIconDirective } from './server-browser/directives/teamspeak-icon.directive';
+
+const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, options: {}};
 
 @NgModule({
   declarations: [
     AppComponent,
     ServerBrowserComponent,
     ChannelRowComponent,
-    UserRowComponent
+    UserRowComponent,
+    TeamspeakIconDirective
   ],
   imports: [
     BrowserModule,
-    HttpClientModule
+    HttpClientModule,
+    SocketIoModule.forRoot(socketConfig)
   ],
   providers: [
-    ServerBrowserService
+    ServerBrowserService,
+    ServerBrowserCacheService
   ],
   bootstrap: [AppComponent]
 })

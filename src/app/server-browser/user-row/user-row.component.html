@@ -1,9 +1,8 @@
 <div class="user-row" style="padding-left: 20px;">
   <div class="row-header">
     <p>{{userInfo.client_nickname}}</p>
-    <div>
-      <!-- <ng-container *ngFor="let icon of userInfo.icons">
-      </ng-container> -->
+    <div class="icon-container">
+      <img *ngFor="let icon of serverGroupIcons" [tsIcon]="icon.iconId">
     </div>
   </div>
 </div>

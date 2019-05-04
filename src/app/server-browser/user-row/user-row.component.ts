@@ -1,5 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { ListUserResponse } from '../models/listUserResponse';
+import { ServerBrowserService } from '../services/server-browser.service';
+import { User } from '../models/User';
+import { ServerBrowserCacheService } from '../services/server-browser-cache.service';
+import { Icon } from '../models/Icon';
 
 @Component({
   selector: 'user-row',
@@ -7,11 +10,12 @@ import { ListUserResponse } from '../models/listUserResponse';
   styleUrls: ['./user-row.component.scss']
 })
 export class UserRowComponent implements OnInit {
-  @Input() userInfo: ListUserResponse;
+  @Input() userInfo: User;
+  serverGroupIcons: Array<Icon> = [];
 
-  constructor() { }
+  constructor(private sbs: ServerBrowserService, private scs: ServerBrowserCacheService) { }
 
   ngOnInit() {
+    this.serverGroupIcons = this.scs.getServerGroupIcons(...this.userInfo.client_servergroups);
   }
-
 }
