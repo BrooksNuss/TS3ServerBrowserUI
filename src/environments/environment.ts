@@ -7,7 +7,7 @@ export const environment = {
   svcUrl: 'http://localhost',
   svcPort: '8080',
   svcApiPath: '/api/v1',
-  socketPort: '8081'
+  socketPort: '8080'
 };
 
 /*

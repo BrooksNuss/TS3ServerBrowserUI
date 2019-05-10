@@ -3,11 +3,17 @@ import { ServerBrowserCacheService } from '../services/server-browser-cache.serv
 
 @Directive({ selector: '[tsIcon]' })
 export class TeamspeakIconDirective implements OnInit {
-  @Input('tsIcon') iconId: number;
+  @Input() iconId: string;
+  @Input() icon: string;
 
   constructor(private el: ElementRef, private scs: ServerBrowserCacheService) {}
 
   ngOnInit() {
-    this.el.nativeElement.src = 'data:image/jpeg;base64,' + this.scs.getIcon(this.iconId).data;
+    // can provide icon or iconId
+    if (!this.icon) {
+      this.el.nativeElement.src = 'data:image/jpeg;base64,' + this.scs.getIcon(this.iconId).data;
+    } else {
+      this.el.nativeElement.src = 'data:image/jpeg;base64,' + this.icon;
+    }
   }
 }

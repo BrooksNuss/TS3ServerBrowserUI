@@ -11,6 +11,13 @@
     align-items: center;
 
     img {
+      &.channel-group {
+        height: 28px;
+      }
+
+      &.server-group {
+        height: 32px;
+      }
 
       & + img {
         margin-left: 5px;

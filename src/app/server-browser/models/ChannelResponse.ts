@@ -1,4 +1,4 @@
-export interface ListChannelResponse {
+export interface ChannelResponse {
   namespace: string;
   cid: number;
   pid: number;

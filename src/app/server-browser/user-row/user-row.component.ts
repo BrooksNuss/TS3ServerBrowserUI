@@ -12,10 +12,18 @@ import { Icon } from '../models/Icon';
 export class UserRowComponent implements OnInit {
   @Input() userInfo: User;
   serverGroupIcons: Array<Icon> = [];
+  channelGroupIcons: Array<Icon> = [];
 
   constructor(private sbs: ServerBrowserService, private scs: ServerBrowserCacheService) { }
 
   ngOnInit() {
     this.serverGroupIcons = this.scs.getServerGroupIcons(...this.userInfo.client_servergroups);
+    this.channelGroupIcons = this.scs.getChannelGroupIcons(this.userInfo.client_channel_group_id);
+    this.serverGroupIcons = this.serverGroupIcons.filter(icon => {
+      return icon.data != null && icon.iconId !== '0';
+    });
+    this.channelGroupIcons = this.channelGroupIcons.filter(icon => {
+      return icon.data != null && icon.iconId !== '0';
+    })
   }
 }

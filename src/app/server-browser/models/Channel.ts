@@ -1,7 +1,7 @@
-import { ListChannelResponse } from './ListChannelResponse';
-import { ListUserResponse } from './listUserResponse';
+import { UserResponse } from './UserResponse';
+import { ChannelResponse } from './ChannelResponse';
 
 export interface Channel {
-  channelInfo: ListChannelResponse;
-  users: ListUserResponse[];
+  channelInfo: ChannelResponse;
+  users: Array<UserResponse>;
 }

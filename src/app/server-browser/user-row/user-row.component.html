@@ -2,7 +2,12 @@
   <div class="row-header">
     <p>{{userInfo.client_nickname}}</p>
     <div class="icon-container">
-      <img *ngFor="let icon of serverGroupIcons" [tsIcon]="icon.iconId">
+      <ng-container>
+        <img class="channel-group" *ngFor="let icon of channelGroupIcons" tsIcon [icon]="icon.data">
+      </ng-container>
+      <ng-container>
+        <img class="server-group" *ngFor="let icon of serverGroupIcons" tsIcon [icon]="icon.data">
+      </ng-container>
     </div>
   </div>
 </div>

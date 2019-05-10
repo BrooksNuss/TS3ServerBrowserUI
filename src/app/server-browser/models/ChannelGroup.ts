@@ -1,6 +1,6 @@
-export interface ServerGroup {
+export interface ChannelGroup {
   _namespace: string;
-  sgid: number;
+  cgid: number;
   name: string;
   type: string;
   iconid: string;
@@ -9,6 +9,6 @@ export interface ServerGroup {
   namemode: string;
   n_modifyp: string;
   n_member_addp: string;
-  n_member_removep: number;
+  n_member_removep: string;
   icon: string;
 }

@@ -11,6 +11,7 @@ import { SocketIoModule } from 'ngx-socket-io';
 import { environment } from 'src/environments/environment';
 import { ServerBrowserCacheService } from './server-browser/services/server-browser-cache.service';
 import { TeamspeakIconDirective } from './server-browser/directives/teamspeak-icon.directive';
+import { ServerBrowserSocketService } from './server-browser/services/server-browser-socket.service';
 
 const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, options: {}};
 
@@ -29,7 +30,8 @@ const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, op
   ],
   providers: [
     ServerBrowserService,
-    ServerBrowserCacheService
+    ServerBrowserCacheService,
+    ServerBrowserSocketService
   ],
   bootstrap: [AppComponent]
 })

@@ -2,9 +2,10 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ListUserResponse } from '../models/listUserResponse';
-import { ListChannelResponse } from '../models/ListChannelResponse';
 import { ServerGroupResponse } from '../models/ServerGroupResponse';
+import { ChannelGroupResponse } from '../models/ChannelGroupResponse';
+import { UserResponse } from '../models/UserResponse';
+import { ChannelResponse } from '../models/ChannelResponse';
 @Injectable()
 export class ServerBrowserService {
 
@@ -12,23 +13,19 @@ export class ServerBrowserService {
 
   constructor(private http: HttpClient) { }
 
-  getUserList(): Observable<ListUserResponse[]> {
-    return this.http.get<ListUserResponse[]>(this.apiPath + '/users/list');
+  getUserList(): Observable<UserResponse[]>{
+    return this.http.get<UserResponse[]>(this.apiPath + '/users/list');
   }
 
-  getChannelList(): Observable<ListChannelResponse[]> {
-    return this.http.get<ListChannelResponse[]>(this.apiPath + '/channels/list');
+  getChannelList(): Observable<ChannelResponse[]> {
+    return this.http.get<ChannelResponse[]>(this.apiPath + '/channels/list');
   }
 
   getServerGroupList(): Observable<ServerGroupResponse[]> {
     return this.http.get<ServerGroupResponse[]>(this.apiPath + '/groups/server/list');
   }
 
-  getServerGroupIconList(): Observable<any> {
-    return this.http.get(this.apiPath + '/groups/server/icons/list');
-  }
-
-  getIconByServerGroup(groupId: number): Observable<any> {
-    return this.http.get<any[]>(this.apiPath + '/groups/server/icons/' + groupId);
+  getChannelGroupList(): Observable<ChannelGroupResponse[]> {
+    return this.http.get<ChannelGroupResponse[]>(this.apiPath + '/groups/channel/list');
   }
 }

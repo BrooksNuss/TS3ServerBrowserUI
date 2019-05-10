@@ -28,5 +28,5 @@ export interface User {
   client_icon_id: number;
   client_country: string;
   connection_client_ip: string;
-  serverGroupIconIds: Array<number>;
+  serverGroupIconIds: Array<string>;
 }

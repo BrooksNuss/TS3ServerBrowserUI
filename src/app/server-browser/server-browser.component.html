@@ -1,4 +1,5 @@
 <div class="server-browser-container">
+  <button (click)="debugPause()">Click here to debug</button>
   <ng-container *ngFor="let channel of channels">
     <channel-row [channelInfo]="channel?.channelInfo" [users]="channel?.users"></channel-row>
   </ng-container>
