@@ -1,7 +1,7 @@
 import { UserResponse } from './UserResponse';
 import { ChannelResponse } from './ChannelResponse';
 
-export interface ClientDisconnectResponseEvent {
+export interface ClientDisconnectEventResponse {
   client: {clid: number};
   event: {
     cfid: number;
@@ -48,3 +48,29 @@ export interface ChannelDeletedEventResponse {
   cid: number;
   invoker: UserResponse;
 }
+
+export interface CacheUpdateEvent {
+  cid: number;
+  event: TS3ServerEvent;
+  type: TS3ServerEventType;
+}
+
+export type TS3ServerEvent = ClientDisconnectEventResponse |
+  ClientConnectEventResponse |
+  ClientMovedEventResponse |
+  ChannelEditEventResponse |
+  ChannelCreateEventResponse |
+  ChannelMovedEventResponse |
+  ChannelDeletedEventResponse;
+
+export type TS3ClientEvents = ClientDisconnectEventResponse |
+  ClientConnectEventResponse |
+  ClientMovedEventResponse;
+
+export type TS3ServerEventType = 'clientdisconnect' |
+  'clientconnect' |
+  'clientmoved' |
+  'channeledit' |
+  'channelcreate' |
+  'channelmoved' |
+  'channeldelete';

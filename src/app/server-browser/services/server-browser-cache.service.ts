@@ -6,7 +6,7 @@ import { ServerGroup } from '../models/ServerGroup';
 import { Icon } from '../models/Icon';
 import { ChannelGroup } from '../models/ChannelGroup';
 import { Subject } from 'rxjs';
-import { ClientConnectEventResponse, ClientDisconnectResponseEvent } from '../models/ClientEvents';
+import { ClientConnectEventResponse, ClientDisconnectEventResponse, ClientMovedEventResponse, ChannelEditEventResponse, CacheUpdateEvent, ChannelCreateEventResponse, ChannelMovedEventResponse, ChannelDeletedEventResponse } from '../models/Events';
 
 @Injectable()
 export class ServerBrowserCacheService {
@@ -15,8 +15,8 @@ export class ServerBrowserCacheService {
   serverGroups: ServerGroup[] = [];
   channelGroups: ChannelGroup[] = [];
   icons: Icon[] = [];
-  private userSubject = new Subject<{cid: number, event: any, type: string}>();
-  public userUpdate$ = this.userSubject.asObservable();
+  private cacheSubject = new Subject<CacheUpdateEvent>();
+  public cacheUpdate$ = this.cacheSubject.asObservable();
 
   constructor(private socket: Socket) { }
 
@@ -52,12 +52,41 @@ export class ServerBrowserCacheService {
 
   connectUser(event: ClientConnectEventResponse) {
     this.users.push(event.client);
-    this.userSubject.next({cid: event.cid, event, type: 'connect'});
+    this.cacheSubject.next({cid: event.cid, event, type: 'clientconnect'});
   }
 
-  disconnectUser(event: ClientDisconnectResponseEvent) {
+  disconnectUser(event: ClientDisconnectEventResponse) {
     let clientIndex = this.users.findIndex(client => client.cid === event.client.clid);
     this.users.splice(clientIndex);
-    this.userSubject.next({cid: event.event.cfid, event, type: 'connect'});
+    this.cacheSubject.next({cid: event.event.cfid, event, type: 'clientdisconnect'});
+  }
+
+  moveUser(event: ClientMovedEventResponse) {
+    let clientIndex = this.users.findIndex(client => client.cid === event.client.cid);
+    this.users[clientIndex] = event.client;
+    this.cacheSubject.next({cid: event.channel.cid, event, type: 'clientmoved'});
+  }
+
+  editChannel(event: ChannelEditEventResponse) {
+    let channelIndex = this.channels.findIndex(channel => channel.channelInfo.cid === event.channel.cid);
+    this.channels[channelIndex].channelInfo = event.channel;
+    this.cacheSubject.next({cid: event.channel.cid, event, type: 'channeledit'})
+  }
+
+  createChannel(event: ChannelCreateEventResponse) {
+    this.channels.push({channelInfo: event.channel, users: []});
+    this.cacheSubject.next({cid: event.channel.cid, event, type: 'channelcreate'});
+  }
+
+  moveChannel(event: ChannelMovedEventResponse) {
+    // need to test to figure out how this one works.
+    // let channel = this.channels.splice(this.channels.findIndex(channel => channel.channelInfo.cid === event.channel.cid), 1);
+    // this.channels.splice(event.order, 0, channel);
+    this.cacheSubject.next({cid: event.channel.cid, event, type: 'channelmoved'});
+  }
+
+  deleteChannel(event: ChannelDeletedEventResponse) {
+    this.channels.splice(this.channels.findIndex(channel => channel.channelInfo.cid === event.cid), 1);
+    this.cacheSubject.next({cid: event.cid, event, type: 'channeldelete'});
   }
 }

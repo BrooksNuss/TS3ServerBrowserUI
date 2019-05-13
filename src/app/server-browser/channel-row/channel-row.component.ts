@@ -2,6 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { User } from '../models/User';
 import { ChannelResponse } from '../models/ChannelResponse';
 import { ServerBrowserCacheService } from '../services/server-browser-cache.service';
+import { CacheUpdateEvent, TS3ClientEvents } from '../models/Events';
 
 @Component({
   selector: 'channel-row',
@@ -17,7 +18,7 @@ export class ChannelRowComponent implements OnInit {
     console.log(this.users);
   }
 
-  updateChannel(userUpdate: {cid: number, event: any, type: string}) {
-    this.users = this.scs.users.filter(channel => channel.cid === this.channelInfo.cid);
+  updateChannelUsers(userUpdate: CacheUpdateEvent) {
+    this.users = this.scs.users.filter(user => user.cid === this.channelInfo.cid && user.clid === (userUpdate.event as TS3ClientEvents).client.clid);
   }
 }

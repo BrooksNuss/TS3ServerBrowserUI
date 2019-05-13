@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Socket } from 'ngx-socket-io';
 import { ServerBrowserCacheService } from './server-browser-cache.service';
-import { ClientConnectEventResponse, ClientDisconnectResponseEvent, ClientMovedEventResponse } from '../models/ClientEvents';
+import { ClientConnectEventResponse, ClientDisconnectEventResponse, ClientMovedEventResponse, ChannelEditEventResponse, ChannelCreateEventResponse, ChannelMovedEventResponse, ChannelDeletedEventResponse } from '../models/Events';
 
 @Injectable()
 export class ServerBrowserSocketService {
@@ -21,7 +21,7 @@ export class ServerBrowserSocketService {
       scs.connectUser(event);
     });
 
-    socket.fromEvent('clientdisconnect').subscribe((event: ClientDisconnectResponseEvent) => {
+    socket.fromEvent('clientdisconnect').subscribe((event: ClientDisconnectEventResponse) => {
       scs.disconnectUser(event);
     });
 
@@ -29,10 +29,25 @@ export class ServerBrowserSocketService {
       scs.moveUser(event);
     });
 
-    socket.on('clientmoved', (event) => {
-      console.log("USER MOVED");
-      console.log(event);
+    socket.fromEvent('channeledit').subscribe((event: ChannelEditEventResponse) => {
+      scs.editChannel(event);
     });
+
+    socket.fromEvent('channelcreate').subscribe((event: ChannelCreateEventResponse) => {
+      scs.createChannel(event);
+    })
+
+    socket.fromEvent('channelmoved').subscribe((event: ChannelMovedEventResponse) => {
+      scs.moveChannel(event);
+    })
+
+    socket.fromEvent('channeldelete').subscribe((event: ChannelDeletedEventResponse) => {
+      scs.deleteChannel(event);
+    })
+
+    //we may be able to manually hook directly into the ts3 events that aren't exposed by the framework.
+    //we'd have to subscribe to these in the backend. examples: onTalkStatusChangeEvent
+    //also look at yatqa docs
   }
 
   getClientMoved() {

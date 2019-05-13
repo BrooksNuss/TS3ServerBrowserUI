@@ -8,7 +8,7 @@ import { ServerBrowserCacheService } from './services/server-browser-cache.servi
 import { ChannelGroup } from './models/ChannelGroup';
 import { ServerBrowserSocketService } from './services/server-browser-socket.service';
 import { ChannelRowComponent } from './channel-row/channel-row.component';
-import { ClientConnectEventResponse, ClientDisconnectResponseEvent } from './models/ClientEvents';
+import { ClientConnectEventResponse, ClientDisconnectEventResponse, ClientMovedEventResponse, ChannelEditEventResponse, CacheUpdateEvent, ChannelCreateEventResponse } from './models/Events';
 
 @Component({
   selector: 'server-browser',
@@ -21,7 +21,7 @@ export class ServerBrowserComponent implements OnInit {
   users: User[] = [];
   serverGroups: ServerGroup[] = [];
   channelGroups: ChannelGroup[] = [];
-  private userSubscription;
+  private cacheSubscription;
   constructor(private sbs: ServerBrowserService, private scs: ServerBrowserCacheService, private sss: ServerBrowserSocketService) { }
 
   // all initial load logic takes place here (users, channels, icons, etc)
@@ -62,18 +62,45 @@ export class ServerBrowserComponent implements OnInit {
       this.scs.updateIcons(...this.channelGroups.map(group => ({data: group.icon, iconId: group.iconid})));
     });
 
-    this.userSubscription = this.scs.userUpdate$.subscribe(userUpdate => {
-      if (userUpdate.type === 'connect') {
-        this.users = this.scs.users;
-        let affectedChannelRow = this.channelRows.find(row => row.channelInfo.cid === (userUpdate.event as ClientConnectEventResponse).cid);
-        affectedChannelRow.updateChannel(userUpdate);
-      } else if (userUpdate.type === 'disconnect') {
-        this.users = this.scs.users;
-        let affectedChannelRow =
-          this.channelRows.find(row => row.channelInfo.cid === (userUpdate.event as ClientDisconnectResponseEvent).event.clid);
-        affectedChannelRow.updateChannel(userUpdate);
+    this.cacheSubscription = this.scs.cacheUpdate$.subscribe((cacheUpdate: CacheUpdateEvent) => {
+      let channelsToUpdate: Array<{channel: ChannelRowComponent, event: any}> = [];
+      switch (cacheUpdate.type) {
+        case 'clientconnect': {
+          this.users = this.scs.users;
+          let channel = this.getChannelRowByCid((cacheUpdate.event as ClientConnectEventResponse).cid)
+          channelsToUpdate.push({channel: channel, event: cacheUpdate.event});
+        } break; case 'clientdisconnect': {
+          this.users = this.scs.users;
+          let channel = this.getChannelRowByCid((cacheUpdate.event as ClientDisconnectEventResponse).event.clid);
+          channelsToUpdate.push({channel: channel, event: cacheUpdate.event});
+        } break; case 'clientmoved': {
+          this.users = this.scs.users;
+          let channelf = this.getChannelRowByCid((cacheUpdate.event as ClientMovedEventResponse).client.cfid);
+          let channelt = this.getChannelRowByCid((cacheUpdate.event as ClientMovedEventResponse).channel.cid);
+          channelsToUpdate.push({channel: channelf, event: cacheUpdate.event});
+          channelsToUpdate.push({channel: channelt, event: cacheUpdate.event});
+        } break; case 'channeledit': {
+          this.channels = this.scs.channels;
+          let channel = this.getChannelRowByCid((cacheUpdate.event as ChannelEditEventResponse).channel.cid);
+          channel.channelInfo = (cacheUpdate.event as ChannelEditEventResponse).channel;
+        } break; case 'channelcreate': {
+          let channel = this.scs.channels.find(channel => channel.channelInfo.cid === (cacheUpdate.event as ChannelCreateEventResponse).channel.cid);
+          this.channels.push(channel);
+        } break; case 'channelmoved': {
+          this.channels = this.scs.channels;
+        } break; case 'channeldelete': {
+          //could splice here as well. probably just easier to do it this way.
+          this.channels = this.scs.channels;
+        }
       }
+      channelsToUpdate.forEach(channelRow => {
+        channelRow.channel.updateChannelUsers(channelRow.event);
+      });
     });
+  }
+
+  getChannelRowByCid(cid: number): ChannelRowComponent {
+    return this.channelRows.find(row => row.channelInfo.cid === cid);
   }
 
   debugPause() {
