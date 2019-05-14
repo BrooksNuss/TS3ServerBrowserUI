@@ -74,3 +74,8 @@ export type TS3ServerEventType = 'clientdisconnect' |
   'channelcreate' |
   'channelmoved' |
   'channeldelete';
+
+export interface ChannelTree {
+  cid: number;
+  subChannels: ChannelTree[];
+}

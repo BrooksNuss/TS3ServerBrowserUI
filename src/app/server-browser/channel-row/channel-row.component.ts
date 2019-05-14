@@ -20,20 +20,19 @@ export class ChannelRowComponent implements OnInit {
 
   ngOnInit() {
     // console.log(this.users);
-    this.isSubChannel = this.channel.channelInfo.pid !== 0;
+    this.isSubChannel = this.channel.pid !== 0;
+    this.scs.channelCacheUpdates[this.channel.cid].subscribe(cacheUpdate => {
+      this.channel = cacheUpdate.event.channel;
+    })
   }
 
-  updateView() {
-    console.log('help');
-  }
+  // updateChannelUsers(userUpdate: CacheUpdateEvent) {
+  //   this.channel.users = this.scs.users.filter(user => user.cid === this.channel.channelInfo.cid && user.clid === (userUpdate.event as TS3ClientEvents).client.clid);
+  // }
 
-  updateChannelUsers(userUpdate: CacheUpdateEvent) {
-    this.channel.users = this.scs.users.filter(user => user.cid === this.channel.channelInfo.cid && user.clid === (userUpdate.event as TS3ClientEvents).client.clid);
-  }
-
-  updateChannelInfo(channelUpdate: CacheUpdateEvent) {
-    let cacheChannel = this.scs.channels.find(channel => channel.channelInfo.cid === this.channel.channelInfo.cid);
-    this.channel.channelInfo = cacheChannel.channelInfo;
-    this.channel.subChannels = cacheChannel.subChannels;
-  }
+  // updateChannelInfo(channelUpdate: CacheUpdateEvent) {
+  //   let cacheChannel = this.scs.channels.find(channel => channel.channelInfo.cid === this.channel.channelInfo.cid);
+  //   this.channel.channelInfo = cacheChannel.channelInfo;
+  //   this.channel.subChannels = cacheChannel.subChannels;
+  // }
 }
