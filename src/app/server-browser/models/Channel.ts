@@ -4,4 +4,5 @@ import { ChannelResponse } from './ChannelResponse';
 export interface Channel {
   channelInfo: ChannelResponse;
   users: Array<UserResponse>;
+  subChannels: Channel[];
 }

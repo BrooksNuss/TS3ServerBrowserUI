@@ -70,19 +70,41 @@ export class ServerBrowserCacheService {
   editChannel(event: ChannelEditEventResponse) {
     let channelIndex = this.channels.findIndex(channel => channel.channelInfo.cid === event.channel.cid);
     this.channels[channelIndex].channelInfo = event.channel;
-    this.cacheSubject.next({cid: event.channel.cid, event, type: 'channeledit'})
+    this.cacheSubject.next({cid: event.channel.cid, event, type: 'channeledit'});
   }
 
   createChannel(event: ChannelCreateEventResponse) {
-    this.channels.push({channelInfo: event.channel, users: []});
+    // for a temporary channel, we need to move the user into it
+    // let newChannel: Channel = {channelInfo: event.channel, users: [], subChannels: []};
+    // if (event.channel.pid) {
+    //   let parent = this.channels.find(channel => channel.channelInfo.cid === event.channel.pid);
+    //   parent.subChannels.push(newChannel);
+    // }
+    this.channels.push({channelInfo: event.channel, users: [], subChannels: []});
     this.cacheSubject.next({cid: event.channel.cid, event, type: 'channelcreate'});
   }
 
   moveChannel(event: ChannelMovedEventResponse) {
-    // need to test to figure out how this one works.
-    // let channel = this.channels.splice(this.channels.findIndex(channel => channel.channelInfo.cid === event.channel.cid), 1);
-    // this.channels.splice(event.order, 0, channel);
-    this.cacheSubject.next({cid: event.channel.cid, event, type: 'channelmoved'});
+    // let channel = this.channels.splice(this.channels.findIndex(c => c.channelInfo.cid === event.channel.cid), 1)[0];
+    // this.channels.splice(parseInt(event.order), 0, channel);
+    // channel positioning (parent/order wise) is all automatic because of the channelrow bindings.
+    let newParentIndex = this.channels.findIndex(channel => channel.channelInfo.cid === event.channel.pid);
+    let oldParentIndex = this.channels.find(channel => channel.channelInfo.cid === event.channel.cid).channelInfo.pid;
+    let channelIndex = this.channels.findIndex(channel => channel.channelInfo.cid === event.channel.cid);
+    let oldParent: Channel;
+    // add channel to new parent
+    if (newParentIndex !== -1) {
+      this.channels[newParentIndex].channelInfo = event.parent;
+    }
+    // remove channel from old parent
+    if (oldParentIndex !== -1 && oldParentIndex !== 0) {
+      oldParent = this.channels[oldParentIndex];
+      oldParent.subChannels.splice(oldParent.subChannels.findIndex(sc => sc.channelInfo.cid === event.channel.cid), 1);
+    }
+    // update channel info
+    this.channels[channelIndex].channelInfo = event.channel;
+    // UNIQUE CID USAGE: CID REFERS TO OLD PARENT FOR THIS INSTEAD OF CURRENT CID
+    this.cacheSubject.next({cid: oldParent ? oldParent.channelInfo.cid : null, event, type: 'channelmoved'});
   }
 
   deleteChannel(event: ChannelDeletedEventResponse) {

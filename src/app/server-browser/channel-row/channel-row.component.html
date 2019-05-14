@@ -1,15 +1,15 @@
-<div class="channel-row">
+<div class="channel-row" [ngClass]="{'sub-channel': isSubChannel}">
   <div class="row-header">
-    <p>{{channelInfo.channel_name}}</p>
+    <p>{{channel.channelInfo.channel_name}}</p>
     <div>
       <!-- <ng-container *ngFor="let icon of channelInfo.getIcon">
       </ng-container> -->
     </div>
   </div>
-  <ng-container *ngFor="let user of users">
+  <ng-container *ngFor="let user of channel.users">
     <user-row [userInfo]="user"></user-row>
   </ng-container>
-  <!-- <ng-container *ngFor="let channel of channelInfo.">
-    <channel-row></channel-row>
-  </ng-container> -->
+  <ng-container *ngFor="let c of channel.subChannels">
+    <channel-row [channel]="c"></channel-row>
+  </ng-container>
 </div>

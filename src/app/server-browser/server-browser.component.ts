@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ViewChildren, QueryList } from '@angular/core';
+import { Component, OnInit, Input, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
 import { ServerBrowserService } from './services/server-browser.service';
 import { forkJoin } from 'rxjs';
 import { Channel } from './models/Channel';
@@ -8,7 +8,7 @@ import { ServerBrowserCacheService } from './services/server-browser-cache.servi
 import { ChannelGroup } from './models/ChannelGroup';
 import { ServerBrowserSocketService } from './services/server-browser-socket.service';
 import { ChannelRowComponent } from './channel-row/channel-row.component';
-import { ClientConnectEventResponse, ClientDisconnectEventResponse, ClientMovedEventResponse, ChannelEditEventResponse, CacheUpdateEvent, ChannelCreateEventResponse } from './models/Events';
+import { ClientConnectEventResponse, ClientDisconnectEventResponse, ClientMovedEventResponse, ChannelEditEventResponse, CacheUpdateEvent, ChannelCreateEventResponse, ChannelMovedEventResponse } from './models/Events';
 
 @Component({
   selector: 'server-browser',
@@ -18,11 +18,12 @@ import { ClientConnectEventResponse, ClientDisconnectEventResponse, ClientMovedE
 export class ServerBrowserComponent implements OnInit {
   @ViewChildren(ChannelRowComponent) channelRows: QueryList<ChannelRowComponent>;
   channels: Channel[] = [];
+  topChannels: Channel[] = [];
   users: User[] = [];
   serverGroups: ServerGroup[] = [];
   channelGroups: ChannelGroup[] = [];
   private cacheSubscription;
-  constructor(private sbs: ServerBrowserService, private scs: ServerBrowserCacheService, private sss: ServerBrowserSocketService) { }
+  constructor(private sbs: ServerBrowserService, private scs: ServerBrowserCacheService, private sss: ServerBrowserSocketService, private cdr: ChangeDetectorRef) { }
 
   // all initial load logic takes place here (users, channels, icons, etc)
   ngOnInit() {
@@ -34,8 +35,16 @@ export class ServerBrowserComponent implements OnInit {
     forkJoin(channelsReq, usersReq, serverGroupsReq, channelGroupsReq).subscribe(values => {
       // handle all channel responses
       values[0].forEach(value => {
-        this.channels.push({channelInfo: value, users: []});
+        this.channels.push({channelInfo: value, users: [], subChannels: []});
+
       });
+      this.channels.forEach(channel => {
+        if (channel.channelInfo.pid) {
+          let parent = this.channels.find(p => p.channelInfo.cid === channel.channelInfo.pid);
+          parent.subChannels.push(channel);
+        }
+      });
+      this.updateTopChannels();
       // handle all user responses
       values[1].forEach(user => {
         this.users.push(user);
@@ -68,39 +77,82 @@ export class ServerBrowserComponent implements OnInit {
         case 'clientconnect': {
           this.users = this.scs.users;
           let channel = this.getChannelRowByCid((cacheUpdate.event as ClientConnectEventResponse).cid)
-          channelsToUpdate.push({channel: channel, event: cacheUpdate.event});
+          channelsToUpdate.push({channel, event: cacheUpdate.event});
         } break; case 'clientdisconnect': {
           this.users = this.scs.users;
           let channel = this.getChannelRowByCid((cacheUpdate.event as ClientDisconnectEventResponse).event.clid);
-          channelsToUpdate.push({channel: channel, event: cacheUpdate.event});
+          channelsToUpdate.push({channel, event: cacheUpdate.event});
         } break; case 'clientmoved': {
           this.users = this.scs.users;
-          let channelf = this.getChannelRowByCid((cacheUpdate.event as ClientMovedEventResponse).client.cfid);
+          // this channel hasn't been updated yet, so we can still find this channel by looking for the user
+          // incorrect, needs work
+          let previousChannel = this.channels.find(channel =>
+            channel.users.findIndex(user => user.clid === (cacheUpdate.event as ClientMovedEventResponse).client.clid) !== -1
+          );
+          let channelf = this.getChannelRowByCid(previousChannel.channelInfo.cid);
           let channelt = this.getChannelRowByCid((cacheUpdate.event as ClientMovedEventResponse).channel.cid);
           channelsToUpdate.push({channel: channelf, event: cacheUpdate.event});
           channelsToUpdate.push({channel: channelt, event: cacheUpdate.event});
-        } break; case 'channeledit': {
+        } break;
+        case 'channeledit': {
           this.channels = this.scs.channels;
-          let channel = this.getChannelRowByCid((cacheUpdate.event as ChannelEditEventResponse).channel.cid);
-          channel.channelInfo = (cacheUpdate.event as ChannelEditEventResponse).channel;
+          // let channel = this.getChannelRowByCid((cacheUpdate.event as ChannelEditEventResponse).channel.cid);
+          // channel.channel.channelInfo = (cacheUpdate.event as ChannelEditEventResponse).channel;
         } break; case 'channelcreate': {
-          let channel = this.scs.channels.find(channel => channel.channelInfo.cid === (cacheUpdate.event as ChannelCreateEventResponse).channel.cid);
-          this.channels.push(channel);
-        } break; case 'channelmoved': {
+          // let channel = this.scs.channels.find(c => c.channelInfo.cid === (cacheUpdate.event as ChannelCreateEventResponse).channel.cid);
+          // this.channels.push(channel);
           this.channels = this.scs.channels;
+        } break; case 'channelmoved': {
+          this.updateTopChannels();
+          // oldparent isn't working properly
+          if (cacheUpdate.cid) {
+            this.getChannelRowByCid(cacheUpdate.cid).updateChannelInfo(cacheUpdate);
+            this.getChannelRowByCid((cacheUpdate.event as ChannelMovedEventResponse).parent.cid).updateChannelInfo(cacheUpdate);
+          } else {
+            this.getChannelRowByCid((cacheUpdate.event as ChannelMovedEventResponse).channel.cid).updateChannelInfo(cacheUpdate);
+          }
+          // let oldParentId;
+          // let oldChannel = this.channels.find(c => c.channelInfo.cid === (cacheUpdate.event as ChannelMovedEventResponse).channel.cid);
+          // if (oldChannel.channelInfo.pid) {
+          //    oldParentId = this.channels.find(c =>
+          //     c.channelInfo.cid === (cacheUpdate.event as ChannelMovedEventResponse).parent.cid).channelInfo.pid;
+          // }
+          // this.channels = this.scs.channels;
+          // this.updateTopChannels();
+          // this.cdr.detectChanges();
+          // let channel = this.channels.find(c => c.channelInfo.cid === cacheUpdate.cid);
+          // if ((cacheUpdate.event as ChannelMovedEventResponse).parent) {
+          //   // add to new parent
+          //   let parent = this.getChannelRowByCid((cacheUpdate.event as ChannelMovedEventResponse).parent.cid);
+          //   parent.channel.subChannels.push(channel);
+          // } else {
+          //   // channel has no parent
+          //   let channelRow = this.getChannelRowByCid(cacheUpdate.cid);
+          //   channelRow.channel.channelInfo = (cacheUpdate.event as ChannelMovedEventResponse).channel;
+          //   channelRow.isSubChannel = (cacheUpdate.event as ChannelMovedEventResponse).parent ? true : false;
+          // }
+          // // remove channel from old parent channel
+          // if (oldParentId) {
+          //   let oldParent = this.channels.find(c => c.channelInfo.cid === oldParentId);
+          //   oldParent.subChannels.splice(oldParent.subChannels.findIndex(c => c.channelInfo.cid === cacheUpdate.cid), 1);
+          // }
         } break; case 'channeldelete': {
-          //could splice here as well. probably just easier to do it this way.
+          // could splice here as well. probably just easier to do it this way.
           this.channels = this.scs.channels;
         }
       }
-      channelsToUpdate.forEach(channelRow => {
-        channelRow.channel.updateChannelUsers(channelRow.event);
-      });
+      // channelsToUpdate.forEach(channelRow => {
+      //   channelRow.channel.updateChannelUsers(channelRow.event);
+      // });
     });
   }
 
   getChannelRowByCid(cid: number): ChannelRowComponent {
-    return this.channelRows.find(row => row.channelInfo.cid === cid);
+    return this.channelRows.find(row => row.channel.channelInfo.cid === cid);
+  }
+
+  updateTopChannels() {
+    this.topChannels = this.channels.filter(channel => channel.channelInfo.pid === 0);
   }
 
   debugPause() {
