@@ -10,17 +10,20 @@ export interface ClientDisconnectEventResponse {
     reasonid: number;
     reasonmsg: string;
   };
+  type: 'clientdisconnect';
 }
 
 export interface ClientConnectEventResponse {
   cid: number;
   client: UserResponse;
+  type: 'clientconnect';
 }
 
 export interface ClientMovedEventResponse {
   channel: ChannelResponse;
   client: UserResponse;
   reasonId: number;
+  type: 'clientmoved';
 }
 
 export interface ChannelEditEventResponse {
@@ -28,6 +31,7 @@ export interface ChannelEditEventResponse {
   invoker: UserResponse;
   modified: {};
   reasonId: number;
+  type: 'channeledit';
 }
 
 export interface ChannelCreateEventResponse {
@@ -35,6 +39,7 @@ export interface ChannelCreateEventResponse {
   cpid: string;
   invoker: UserResponse;
   modified: {};
+  type: 'channelcreate';
 }
 
 export interface ChannelMovedEventResponse {
@@ -42,17 +47,18 @@ export interface ChannelMovedEventResponse {
   invoker: UserResponse;
   order: string;
   parent: ChannelResponse;
+  type: 'channelmoved';
 }
 
 export interface ChannelDeletedEventResponse {
   cid: number;
   invoker: UserResponse;
+  type: 'channeldelete';
 }
 
 export interface CacheUpdateEvent {
   cid: number;
   event: TS3ServerEvent;
-  type: TS3ServerEventType;
 }
 
 export type TS3ServerEvent = ClientDisconnectEventResponse |
@@ -74,8 +80,3 @@ export type TS3ServerEventType = 'clientdisconnect' |
   'channelcreate' |
   'channelmoved' |
   'channeldelete';
-
-export interface ChannelTree {
-  cid: number;
-  subChannels: ChannelTree[];
-}
