@@ -118,7 +118,12 @@ export class ServerBrowserCacheService {
   }
 
   deleteChannel(event: ChannelDeletedEventResponse) {
+    // update cache, parent
+    let parentId = this.channels.find(channel => channel.cid === event.cid).pid;
     this.channels.splice(this.channels.findIndex(channel => channel.cid === event.cid), 1);
+    let cacheUpdateEvent = this.createCacheUpdateEvent(event.cid, event, 'channeldelete');
+    this.channelCacheUpdates[parentId].next(cacheUpdateEvent);
+    this.cacheSubject.next(cacheUpdateEvent);
     // this.cacheSubject.next({cid: event.cid, event, type: 'channeldelete'});
   }
 
