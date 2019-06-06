@@ -13,7 +13,7 @@ export class ServerBrowserService {
 
   constructor(private http: HttpClient) { }
 
-  getUserList(): Observable<UserResponse[]>{
+  getUserList(): Observable<UserResponse[]> {
     return this.http.get<UserResponse[]>(this.apiPath + '/users/list');
   }
 
