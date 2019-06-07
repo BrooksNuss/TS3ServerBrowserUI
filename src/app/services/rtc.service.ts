@@ -11,4 +11,8 @@ export class RTCService {
   initiateConnection() {
     return this.http.post(this.apiPath + '/rtc/connections', null);
   }
+
+  sendAnswer(id: string, localDesc: RTCSessionDescription) {
+    return this.http.post(this.apiPath + '/rtc/connections/' + id + '/remote-description', localDesc);
+  }
 }
