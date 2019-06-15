@@ -44,10 +44,6 @@ export class ServerBrowserSocketService {
     socket.fromEvent('channeldelete').subscribe((event: ChannelDeletedEventResponse) => {
       scs.deleteChannel(event);
     });
-
-    //we may be able to manually hook directly into the ts3 events that aren't exposed by the framework.
-    //we'd have to subscribe to these in the backend. examples: onTalkStatusChangeEvent
-    //also look at yatqa docs
   }
 
   getClientMoved() {

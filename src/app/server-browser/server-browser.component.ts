@@ -98,22 +98,17 @@ export class ServerBrowserComponent implements OnInit {
         } break;
         case 'channeledit': {
           this.channels = this.scs.channels;
-          // let channel = this.getChannelRowByCid((cacheUpdate.event as ChannelEditEventResponse).channel.cid);
-          // channel.channel.channelInfo = (cacheUpdate.event as ChannelEditEventResponse).channel;
         } break; case 'channelcreate': {
-          // let channel = this.scs.channels.find(c => c.channelInfo.cid === (cacheUpdate.event as ChannelCreateEventResponse).channel.cid);
-          // this.channels.push(channel);
           this.channels = this.scs.channels;
+          this.updateTopChannels();
         } break; case 'channelmoved': {
           this.updateTopChannels();
         } break; case 'channeldelete': {
           // could splice here as well. probably just easier to do it this way.
           this.channels = this.scs.channels;
+          this.updateTopChannels();
         }
       }
-      // channelsToUpdate.forEach(channelRow => {
-      //   channelRow.channel.updateChannelUsers(channelRow.event);
-      // });
     });
   }
 

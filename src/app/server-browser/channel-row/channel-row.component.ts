@@ -33,7 +33,9 @@ export class ChannelRowComponent implements OnInit, OnDestroy {
         } break; case 'clientmoved': {
           let clientId = cacheUpdate.event.client.clid;
         } break; case 'channeledit': {
+          Object.assign(this.channel, cacheUpdate.event.modified);
         } break; case 'channelcreate': {
+          this.channel.subChannels.push(cacheUpdate.event.channel);
         } break; case 'channelmoved': {
           let channelId = cacheUpdate.cid;
           let foundIndex = this.channel.subChannels.findIndex(channel => channel.cid === channelId);
@@ -52,6 +54,7 @@ export class ChannelRowComponent implements OnInit, OnDestroy {
             this.channel.subChannels = currentSubChannels;
           }
         } break; case 'channeldelete': {
+          this.channel.subChannels.splice(this.channel.subChannels.findIndex(sub => sub.cid === cacheUpdate.cid), 1);
         }
       }
       // if (cacheUpdate.event.type === 'channelmoved') {

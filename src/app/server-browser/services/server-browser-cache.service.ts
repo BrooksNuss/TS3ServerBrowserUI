@@ -86,20 +86,24 @@ export class ServerBrowserCacheService {
   }
 
   editChannel(event: ChannelEditEventResponse) {
-    let channelIndex = this.channels.findIndex(channel => channel.cid === event.channel.cid);
-    this.channels[channelIndex] = event.channel;
-    // this.cacheSubject.next({cid: event.channel.cid, event, type: 'channeledit'});
+    // set channel as new channel
+    let cacheUpdateEvent = this.createCacheUpdateEvent(event.channel.cid, event, 'channeledit');
+    this.channelCacheUpdates[event.channel.cid].next(cacheUpdateEvent);
+    this.cacheSubject.next(cacheUpdateEvent);
   }
 
   createChannel(event: ChannelCreateEventResponse) {
     // for a temporary channel, we need to move the user into it
-    // let newChannel: Channel = {channelInfo: event.channel, users: [], subChannels: []};
-    // if (event.channel.pid) {
-    //   let parent = this.channels.find(channel => channel.channelInfo.cid === event.channel.pid);
-    //   parent.subChannels.push(newChannel);
-    // }
-    this.channels.push({...event.channel, users: [], subChannels: []});
-    // this.cacheSubject.next({cid: event.channel.cid, event, type: 'channelcreate'});
+    let parentChannel = this.channels.find(channel => channel.cid === parseInt(event.cpid));
+    (event.channel as Channel).subChannels = [];
+    (event.channel as Channel).users = [];
+    this.channels.push(event.channel);
+    let cacheUpdateEvent = this.createCacheUpdateEvent(event.channel.cid, event, 'channelcreate');
+    if (parentChannel) {
+      this.channelCacheUpdates[event.cpid].next(cacheUpdateEvent);
+    }
+    this.channelCacheUpdates[event.channel.cid] = new Subject();
+    this.cacheSubject.next(cacheUpdateEvent);
   }
 
   moveChannel(event: ChannelMovedEventResponse) {
@@ -122,7 +126,9 @@ export class ServerBrowserCacheService {
     let parentId = this.channels.find(channel => channel.cid === event.cid).pid;
     this.channels.splice(this.channels.findIndex(channel => channel.cid === event.cid), 1);
     let cacheUpdateEvent = this.createCacheUpdateEvent(event.cid, event, 'channeldelete');
-    this.channelCacheUpdates[parentId].next(cacheUpdateEvent);
+    if (parentId) {
+      this.channelCacheUpdates[parentId].next(cacheUpdateEvent);
+    }
     this.cacheSubject.next(cacheUpdateEvent);
     // this.cacheSubject.next({cid: event.cid, event, type: 'channeldelete'});
   }
