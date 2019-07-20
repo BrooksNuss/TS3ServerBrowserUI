@@ -119,8 +119,4 @@ export class ServerBrowserComponent implements OnInit {
   updateTopChannels() {
     this.topChannels = this.channels.filter(channel => channel.pid === 0);
   }
-
-  debugPause() {
-    console.log('pausing');
-  }
 }

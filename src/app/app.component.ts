@@ -7,14 +7,19 @@ import { RTCService } from './services/rtc.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  inputStream: MediaStreamTrack;
+  inputStreamTrack: MediaStreamTrack;
+  inputStream: MediaStream;
+  remoteConnection: RTCPeerConnection;
   title = 'ServerBrowserUI';
+  audioContext: AudioContext;
 
   constructor(private rtcService: RTCService) {}
 
   initializeAudio() {
-    navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
-      this.inputStream = stream.getTracks()[0];
+    this.audioContext = new AudioContext();
+    navigator.mediaDevices.getUserMedia({audio: {autoGainControl: false} as any}).then(stream => {
+      this.inputStream = stream;
+      this.inputStreamTrack = stream.getTracks()[0];
       this.connectAudio();
     }, err => {
       console.log('Error getting audio input');
@@ -23,7 +28,7 @@ export class AppComponent {
   }
 
   connectAudio() {
-    let remoteConnection = new RTCPeerConnection({
+    this.remoteConnection = new RTCPeerConnection({
       iceServers: [{
         urls: [
           'stun:stun.l.google.com:19302',
@@ -31,21 +36,49 @@ export class AppComponent {
         ]
       }]
     });
-    remoteConnection.ontrack = track => console.log(track);
-    remoteConnection.addTrack(this.inputStream);
+    this.remoteConnection.addTrack(this.inputStreamTrack);
     this.rtcService.initiateConnection().subscribe((offer: RTCPeerConnection) => {
-      // do something with the connection.
       let id = (offer as any).id;
-      remoteConnection.setRemoteDescription(offer.localDescription);
-      remoteConnection.createAnswer({offerToReceiveAudio: true}).then((answer: RTCSessionDescription) => {
-        remoteConnection.setLocalDescription(answer);
-        this.rtcService.sendAnswer(id, remoteConnection.localDescription).subscribe(res => {
-          console.log(res);
+      // set remote description
+      this.remoteConnection.setRemoteDescription(offer.localDescription).then(() => {
+        // modify transceiver
+        // let transceiver = this.remoteConnection.getTransceivers()[0];
+        // transceiver.direction = 'sendrecv';
+        // transceiver.sender.replaceTrack(this.inputStream).then(track => {
+        // create answer
+        this.remoteConnection.createAnswer().then((answer: RTCSessionDescription) => {
+          this.remoteConnection.setLocalDescription(answer);
+          this.rtcService.sendAnswer(id, this.remoteConnection.localDescription).subscribe(res => {
+            console.log(res);
+            console.log(this.remoteConnection);
+            this.remoteConnection.onconnectionstatechange = e => {
+              console.log(e);
+              if (this.remoteConnection.connectionState === 'connected') {
+                this.initAudioOutput();
+              }
+            };
+            if (this.remoteConnection.connectionState === 'connected') {
+              this.initAudioOutput();
+            }
+          });
         });
       });
     });
-    // let conn = new RTCPeerConnection();
-    // conn.onicecandidate = (cand) => console.log(cand);
-    // conn.createOffer({offerToReceiveAudio: true}).then(offer => conn.setLocalDescription(offer));
+  }
+
+  initAudioOutput() {
+    let remoteStream = new MediaStream();
+    remoteStream.addTrack(this.remoteConnection.getReceivers()[0].track);
+    let remoteSource = this.audioContext.createMediaStreamSource(remoteStream);
+    // let localSource = this.audioContext.createMediaStreamSource(this.inputStream);
+    let volumeNode = this.audioContext.createGain();
+    volumeNode.gain.value = 1;
+    remoteSource.connect(volumeNode);
+    // localSource.connect(volumeNode);
+    volumeNode.connect(this.audioContext.destination);
+  }
+
+  debugPause() {
+    console.log('pausing');
   }
 }

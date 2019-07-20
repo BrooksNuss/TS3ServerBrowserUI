@@ -1,5 +1,4 @@
 <div class="server-browser-container">
-  <button (click)="debugPause()">Click here to debug</button>
   <!-- make a channel-root component here for encapsulation. -->
   <ng-container *ngFor="let c of topChannels">
     <channel-row [channel]="c"></channel-row>
