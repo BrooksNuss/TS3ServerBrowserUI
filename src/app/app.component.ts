@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { RTCService } from './services/rtc.service';
 
 @Component({
@@ -7,6 +7,7 @@ import { RTCService } from './services/rtc.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+  @ViewChild('audioElement') audioElement: ElementRef<HTMLAudioElement>;
   inputStreamTrack: MediaStreamTrack;
   inputStream: MediaStream;
   remoteConnection: RTCPeerConnection;
@@ -17,9 +18,9 @@ export class AppComponent {
 
   initializeAudio() {
     this.audioContext = new AudioContext();
-    navigator.mediaDevices.getUserMedia({audio: {autoGainControl: false} as any}).then(stream => {
+    navigator.mediaDevices.getUserMedia({audio: ({autoGainControl: false} as any), video: false}).then(stream => {
       this.inputStream = stream;
-      this.inputStreamTrack = stream.getTracks()[0];
+      this.inputStreamTrack = stream.getAudioTracks()[0];
       this.connectAudio();
     }, err => {
       console.log('Error getting audio input');
@@ -27,7 +28,7 @@ export class AppComponent {
     });
   }
 
-  connectAudio() {
+  async connectAudio() {
     this.remoteConnection = new RTCPeerConnection({
       iceServers: [{
         urls: [
@@ -36,30 +37,25 @@ export class AppComponent {
         ]
       }]
     });
-    this.remoteConnection.addTrack(this.inputStreamTrack);
     this.rtcService.initiateConnection().subscribe((offer: RTCPeerConnection) => {
       let id = (offer as any).id;
       // set remote description
       this.remoteConnection.setRemoteDescription(offer.localDescription).then(() => {
-        // modify transceiver
-        // let transceiver = this.remoteConnection.getTransceivers()[0];
-        // transceiver.direction = 'sendrecv';
-        // transceiver.sender.replaceTrack(this.inputStream).then(track => {
+        // add our media capabilities
+        this.remoteConnection.addTrack(this.inputStreamTrack, this.inputStream);
         // create answer
         this.remoteConnection.createAnswer().then((answer: RTCSessionDescription) => {
-          this.remoteConnection.setLocalDescription(answer);
-          this.rtcService.sendAnswer(id, this.remoteConnection.localDescription).subscribe(res => {
-            console.log(res);
-            console.log(this.remoteConnection);
-            this.remoteConnection.onconnectionstatechange = e => {
-              console.log(e);
+          this.remoteConnection.setLocalDescription(answer).then(() => {
+            this.rtcService.sendAnswer(id, this.remoteConnection.localDescription).subscribe(res => {
+              this.remoteConnection.onconnectionstatechange = e => {
+                if (this.remoteConnection.connectionState === 'connected') {
+                  this.initAudioOutput();
+                }
+              };
               if (this.remoteConnection.connectionState === 'connected') {
                 this.initAudioOutput();
               }
-            };
-            if (this.remoteConnection.connectionState === 'connected') {
-              this.initAudioOutput();
-            }
+            });
           });
         });
       });
@@ -67,15 +63,15 @@ export class AppComponent {
   }
 
   initAudioOutput() {
-    let remoteStream = new MediaStream();
-    remoteStream.addTrack(this.remoteConnection.getReceivers()[0].track);
-    let remoteSource = this.audioContext.createMediaStreamSource(remoteStream);
-    // let localSource = this.audioContext.createMediaStreamSource(this.inputStream);
-    let volumeNode = this.audioContext.createGain();
-    volumeNode.gain.value = 1;
-    remoteSource.connect(volumeNode);
-    // localSource.connect(volumeNode);
-    volumeNode.connect(this.audioContext.destination);
+      let remoteStream = new MediaStream();
+      remoteStream.addTrack(this.remoteConnection.getReceivers().find(r => r.track.kind === 'audio').track);
+      this.audioElement.nativeElement.srcObject = remoteStream;
+      this.audioElement.nativeElement.muted = true;
+      let remoteSource = this.audioContext.createMediaStreamSource(remoteStream);
+      let volumeNode = this.audioContext.createGain();
+      volumeNode.gain.value = 10;
+      remoteSource.connect(volumeNode);
+      volumeNode.connect(this.audioContext.destination);
   }
 
   debugPause() {

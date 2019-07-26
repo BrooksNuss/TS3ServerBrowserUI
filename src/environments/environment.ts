@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  svcUrl: 'http://localhost',
+  svcUrl: 'https://localhost',
   svcPort: '8080',
   svcApiPath: '/api/v1',
   socketPort: '8080'
