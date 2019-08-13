@@ -3,6 +3,7 @@ class VadProcessor extends AudioWorkletProcessor {
   falloffValue = 0;
   currentFalloffTime = 0;
   active = false;
+  timer = 0;
   constructor(options) {
     super();
     console.log(options);
@@ -42,6 +43,7 @@ class VadProcessor extends AudioWorkletProcessor {
       })
     })
     if (!this.active && max > parameters.sensitivity[0]) {
+      this.timer = Date.now();
       this.active = true;
       this.port.postMessage('activate');
       this.currentFalloffTime = parameters.falloff[0];
@@ -51,6 +53,8 @@ class VadProcessor extends AudioWorkletProcessor {
       }
       this.currentFalloffTime-= 2.6;
       if (this.currentFalloffTime <= 0) {
+        this.timer = Date.now() - this.timer;
+        console.log(this.timer);
         this.active = false;
         this.port.postMessage('deactivate');
       }

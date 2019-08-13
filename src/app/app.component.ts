@@ -19,6 +19,8 @@ export class AppComponent implements OnInit, OnDestroy {
   sendAudioNode: MediaStreamAudioDestinationNode;
   receiveAudioNode: MediaStreamAudioDestinationNode;
   trackReady = false;
+  senderTrack: MediaStreamTrack;
+  dataChannel: RTCDataChannel;
 
   constructor(private rtcService: RTCService) {}
 
@@ -50,6 +52,7 @@ export class AppComponent implements OnInit, OnDestroy {
     });
     this.rtcService.initiateConnection().subscribe((offer: RTCPeerConnection) => {
       let id = (offer as any).id;
+      this.setupDataChannel();
       // set remote description
       this.remoteConnection.setRemoteDescription(offer.localDescription).then(() => {
         // add our media capabilities
@@ -74,12 +77,27 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
+  setupDataChannel() {
+    this.remoteConnection.ondatachannel = channel => {
+      this.dataChannel = channel.channel;
+      this.dataChannel.onclose = () => {
+
+      };
+      this.dataChannel.onopen = () => {
+
+      };
+      this.dataChannel.onmessage = message => {
+
+      };
+    };
+  }
+
   initAudioInput(stream: MediaStream) {
     let inputNode = this.audioContext.createMediaStreamSource(stream);
     this.inputVolumeNode = this.audioContext.createGain();
     this.sendAudioNode = this.audioContext.createMediaStreamDestination();
     this.audioContext.audioWorklet.addModule('../assets/Scripts/vad.js').then(() => {
-      this.vadNode = new AudioWorkletNode(this.audioContext, 'VadProcessor', {parameterData: {sensitivity: .03, falloff: 500}});
+      this.vadNode = new AudioWorkletNode(this.audioContext, 'VadProcessor', {parameterData: {sensitivity: .01, falloff: 1000}});
       this.handleVadMessage();
       inputNode.connect(this.vadNode);
       this.vadNode.connect(this.inputVolumeNode);
@@ -94,32 +112,37 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   initAudioOutput() {
-      let remoteStream = new MediaStream();
-      remoteStream.addTrack(this.remoteConnection.getReceivers().find(r => r.track.kind === 'audio').track);
-      // this.audioElement.nativeElement.srcObject = remoteStream;
-      // this.audioElement.nativeElement.muted = true;
-      // maybe do this beforehand so the user can modify it
-      this.outputVolumeNode = this.audioContext.createGain();
-      let remoteSource = this.audioContext.createMediaStreamSource(remoteStream);
-      this.outputVolumeNode.gain.value = 1;
-      remoteSource.connect(this.outputVolumeNode);
-      this.outputVolumeNode.connect(this.audioContext.destination);
+    this.senderTrack = this.remoteConnection.getSenders()[0].track;
+    this.remoteConnection.getSenders()[0].replaceTrack(null);
+    let remoteStream = new MediaStream();
+    remoteStream.addTrack(this.remoteConnection.getReceivers().find(r => r.track.kind === 'audio').track);
+    // this.audioElement.nativeElement.srcObject = remoteStream;
+    // this.audioElement.nativeElement.muted = true;
+    // maybe do this beforehand so the user can modify it
+    this.outputVolumeNode = this.audioContext.createGain();
+    let remoteSource = this.audioContext.createMediaStreamSource(remoteStream);
+    this.outputVolumeNode.gain.value = 1;
+    remoteSource.connect(this.outputVolumeNode);
+    this.outputVolumeNode.connect(this.audioContext.destination);
   }
 
   handleVadMessage() {
-    let track;
     this.vadNode.port.onmessage = msg => {
-      if (this.trackReady && !track) {
-        track = this.remoteConnection.getSenders()[0].track;
+      if (this.trackReady && !this.senderTrack) {
+        this.senderTrack = this.remoteConnection.getSenders()[0].track;
       }
       if (msg.data === 'activate') {
-        this.remoteConnection.getSenders()[0].replaceTrack(track);
-        // this.sendAudioNode.stream.getAudioTracks()[0].enabled = true;
+        if (this.dataChannel) {
+          this.dataChannel.send('unmute');
+        }
+        this.remoteConnection.getSenders()[0].replaceTrack(this.senderTrack);
       } else if (msg.data === 'deactivate') {
-        // this.sendAudioNode.stream.getAudioTracks()[0].enabled = false;
-        this.remoteConnection.getSenders()[0].replaceTrack(null)
+        if (this.dataChannel) {
+          this.dataChannel.send('mute');
+        }
+        this.remoteConnection.getSenders()[0].replaceTrack(null);
       }
-    }
+    };
   }
 
   debugPause() {
