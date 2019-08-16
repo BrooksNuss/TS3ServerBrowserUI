@@ -119,11 +119,15 @@ export class AppComponent implements OnInit, OnDestroy {
     // this.audioElement.nativeElement.srcObject = remoteStream;
     // this.audioElement.nativeElement.muted = true;
     // maybe do this beforehand so the user can modify it
-    this.outputVolumeNode = this.audioContext.createGain();
-    let remoteSource = this.audioContext.createMediaStreamSource(remoteStream);
-    this.outputVolumeNode.gain.value = 1;
-    remoteSource.connect(this.outputVolumeNode);
-    this.outputVolumeNode.connect(this.audioContext.destination);
+    this.audioContext.audioWorklet.addModule('../assets/Scripts/outputInterceptor.js').then(() => {
+      let outputInterceptor = new AudioWorkletNode(this.audioContext, 'OutputInterceptor');
+      this.outputVolumeNode = this.audioContext.createGain();
+      let remoteSource = this.audioContext.createMediaStreamSource(remoteStream);
+      this.outputVolumeNode.gain.value = 1;
+      remoteSource.connect(outputInterceptor);
+      outputInterceptor.connect(this.outputVolumeNode);
+      this.outputVolumeNode.connect(this.audioContext.destination);
+    });
   }
 
   handleVadMessage() {
