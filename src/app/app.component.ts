@@ -116,14 +116,14 @@ export class AppComponent implements OnInit, OnDestroy {
     this.remoteConnection.getSenders()[0].replaceTrack(null);
     let remoteStream = new MediaStream();
     remoteStream.addTrack(this.remoteConnection.getReceivers().find(r => r.track.kind === 'audio').track);
-    // this.audioElement.nativeElement.srcObject = remoteStream;
-    // this.audioElement.nativeElement.muted = true;
+    this.audioElement.nativeElement.srcObject = remoteStream;
+    this.audioElement.nativeElement.muted = true;
     // maybe do this beforehand so the user can modify it
     this.audioContext.audioWorklet.addModule('../assets/Scripts/outputInterceptor.js').then(() => {
       let outputInterceptor = new AudioWorkletNode(this.audioContext, 'OutputInterceptor');
       this.outputVolumeNode = this.audioContext.createGain();
       let remoteSource = this.audioContext.createMediaStreamSource(remoteStream);
-      this.outputVolumeNode.gain.value = 1;
+      this.outputVolumeNode.gain.value = .2;
       remoteSource.connect(outputInterceptor);
       outputInterceptor.connect(this.outputVolumeNode);
       this.outputVolumeNode.connect(this.audioContext.destination);
