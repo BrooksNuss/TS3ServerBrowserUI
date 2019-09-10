@@ -1,4 +1,8 @@
 class OutputInterceptor extends AudioWorkletProcessor {
+  inputChannels;
+  outputChannel;
+  outputChannel2;
+  count = 0;
   constructor(options) {
     super();
   }
@@ -7,16 +11,18 @@ class OutputInterceptor extends AudioWorkletProcessor {
   }
 
   process(inputs, outputs, parameters) {
-    let max = 0;
-    inputs[0].forEach((inputChannel, index) => {
-      const outputChannel = outputs[0][index];
-      // console.log(inputChannel);
-      inputChannel.forEach((value, index) => {
-        outputChannel[index] = value;
-        let absVal = Math.abs(value);
-        if (absVal > max) {
-          max = absVal;
-        }
+    this.inputChannels = inputs[0];
+    this.outputChannels = outputs[0];
+    if (this.inputChannels[0][0] != 0) {
+      console.log(this.inputChannels[0]);
+      console.log(this.count);
+      this.count++;
+    }
+    this.inputChannels.forEach(channel => {
+      channel.forEach((value, index) => {
+        this.outputChannels.forEach(outChannel => {
+          outChannel[index] = value;
+        })
       })
     })
 

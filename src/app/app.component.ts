@@ -87,7 +87,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
       };
       this.dataChannel.onmessage = message => {
-
+        let parsedData: {type: string, data: string} = JSON.parse(message.data);
+        if (parsedData.type === 'talkingClient') {
+          console.log('talking client: ' + parsedData.data);
+        }
       };
     };
   }
