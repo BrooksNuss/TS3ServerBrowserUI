@@ -1,0 +1,20 @@
+.ts-page-container {
+display: flex;
+flex-direction: column;
+height: 100%;
+
+  .toolbar {
+    position: fixed;
+    height: 45px;
+    z-index: 2;
+  }
+
+  .page-content {
+    margin-top: 45px;
+    height: 100%;
+  }
+
+  mat-expansion-panel {
+    width: 15vw;
+  }
+}

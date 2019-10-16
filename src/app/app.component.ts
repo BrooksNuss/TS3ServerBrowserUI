@@ -159,4 +159,8 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     console.log('DESTROY');
   }
+
+  closeConnection() {
+    this.dataChannel.send('close');
+  }
 }
