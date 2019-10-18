@@ -1,13 +1,35 @@
 import { Component, ViewChild, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { RTCService } from './services/rtc.service';
+import { MatSidenav, MatSidenavContainer } from '@angular/material/sidenav';
+import { transition, state, trigger, style, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  animations: [
+    trigger('sidebarMinimize', [
+      state('open', style({ width: '200px' })),
+      state('closed', style({ width: '54px' })),
+      transition('closed => open', [
+        animate('.25s ease'),
+      ]),
+      transition('open => closed', [
+        animate('.25s ease'),
+      ])
+    ]),
+    trigger('sidebarMinimizeContent', [
+      state('open', style({ 'margin-left': '200px' })),
+      state('closed', style({ 'margin-left': '54px' })),
+      transition('open <=> closed', animate('.25s ease'))
+    ]),
+  ]
 })
 export class AppComponent implements OnInit, OnDestroy {
   @ViewChild('audioElement') audioElement: ElementRef<HTMLAudioElement>;
+  @ViewChild('sidenavContainer') sidebarContainer: MatSidenavContainer;
+  @ViewChild('sidenav') sidebar: MatSidenav;
+  public sidebarOpen = true;
   inputStreamTrack: MediaStreamTrack;
   inputStream: MediaStream;
   remoteConnection: RTCPeerConnection;
@@ -162,5 +184,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   closeConnection() {
     this.dataChannel.send('close');
+  }
+
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
   }
 }

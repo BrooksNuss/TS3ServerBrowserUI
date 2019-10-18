@@ -1,45 +1,19 @@
 <!-- <h1>Server Browser UI</h1> -->
 <div class="ts-page-container">
   <mat-toolbar class="toolbar">
-    <span>TS Server Browser</span>
+    <div class="toolbar-header">
+      <button mat-icon-button (click)="toggleSidebar()"><mat-icon>menu</mat-icon></button>
+      <span>TS Server Browser</span>
+    </div>
+    <div class="toolbar-buttons">
+      <button mat-raised-button>Settings</button>
+    </div>
   </mat-toolbar>
-  <mat-sidenav-container [autosize]="false" class="page-content">
-    <mat-sidenav mode="side" opened>
-      <mat-accordion>
-        <mat-expansion-panel>
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              Contacts
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-        </mat-expansion-panel>
-
-        <mat-expansion-panel>
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              Self
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-        </mat-expansion-panel>
-
-        <mat-expansion-panel>
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              Tools
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-        </mat-expansion-panel>
-
-        <!-- <mat-expansion-panel>
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              Help
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-        </mat-expansion-panel> -->
-      </mat-accordion>
+  <mat-sidenav-container #sidenavContainer [autosize]="false" class="page-content">
+    <mat-sidenav #sidenav mode="side" opened class="sidebar" [@sidebarMinimize]="sidebarOpen ? 'open' : 'closed'">
+      <sidenav-content [sidebarOpen]="sidebarOpen"></sidenav-content>
     </mat-sidenav>
-    <mat-sidenav-content>
+    <mat-sidenav-content [@sidebarMinimizeContent]="sidebarOpen ? 'open' : 'closed'">
       <server-browser></server-browser>
       <button (click)="initializeAudio()">Connect Audio</button>
       <button (click)="debugPause()">Click here to debug</button>

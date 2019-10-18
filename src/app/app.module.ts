@@ -17,6 +17,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { SidenavContentComponent } from './sidenav/sidenav-content/sidenav-content.component';
 
 const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, options: {}};
 
@@ -26,7 +29,8 @@ const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, op
     ServerBrowserComponent,
     ChannelRowComponent,
     UserRowComponent,
-    TeamspeakIconDirective
+    TeamspeakIconDirective,
+    SidenavContentComponent
   ],
   imports: [
     BrowserModule,
@@ -35,7 +39,9 @@ const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, op
     BrowserAnimationsModule,
     MatToolbarModule,
     MatSidenavModule,
-    MatExpansionModule
+    MatExpansionModule,
+    MatButtonModule,
+    MatIconModule
   ],
   providers: [
     ServerBrowserService,

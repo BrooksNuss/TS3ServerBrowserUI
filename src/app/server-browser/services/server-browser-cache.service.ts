@@ -14,33 +14,30 @@ export class ServerBrowserCacheService {
   users: User[] = [];
   serverGroups: ServerGroup[] = [];
   channelGroups: ChannelGroup[] = [];
-  icons: Icon[] = [];
+  icons: Map<string, Icon> = new Map<string, Icon>();
   // channel specific cache update observables. only subscribed to/emits events to its associated channel.
   public channelCacheUpdates: {[key: string]: Subject<CacheUpdateEvent>} = {};
   // general cache update observable. emits all cache update events, can be subscribed to anywhere.
   private cacheSubject = new Subject<CacheUpdateEvent>();
   public cacheUpdate$ = this.cacheSubject.asObservable();
 
-  constructor(private socket: Socket) { }
+  constructor() { }
+
+  initCache(channels: Channel[], users: User[], serverGroups: ServerGroup[], channelGroups: ChannelGroup[], icons: Icon[]) {
+    this.channels = channels;
+    this.users = users;
+    this.serverGroups = serverGroups;
+    this.channelGroups = channelGroups;
+    icons.forEach(icon => {
+      this.icons.set(icon.iconId, icon);
+    });
+    this.channels.forEach(channel => {
+      this.channelCacheUpdates[channel.cid] = new Subject();
+    });
+  }
 
   getIcon(iconId: string) {
-    return this.icons.find(icon => icon.iconId === iconId);
-  }
-
-  addIcons(...icons: Icon[]) {
-    this.icons = this.icons.concat(icons);
-  }
-
-  updateIcons(...icons: Icon[]) {
-    let oldIconMap = this.icons.map(icon => icon.iconId);
-    icons.forEach(icon => {
-      let oldIndex = oldIconMap.indexOf(icon.iconId);
-      if (oldIndex !== -1) {
-        this.icons[oldIndex] = icon;
-      } else {
-        this.icons.push(icon);
-      }
-    });
+    return this.icons.get(iconId);
   }
 
   getServerGroupIcons(...serverGroupIds: Array<number>): Array<Icon> {
