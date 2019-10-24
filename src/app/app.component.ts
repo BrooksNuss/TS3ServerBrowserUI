@@ -26,7 +26,7 @@ import { transition, state, trigger, style, animate } from '@angular/animations'
   ]
 })
 export class AppComponent implements OnInit, OnDestroy {
-  @ViewChild('audioElement') audioElement: ElementRef<HTMLAudioElement>;
+  // @ViewChild('audioElement') audioElement: ElementRef<HTMLAudioElement>;
   @ViewChild('sidenavContainer') sidebarContainer: MatSidenavContainer;
   @ViewChild('sidenav') sidebar: MatSidenav;
   public sidebarOpen = true;
@@ -43,6 +43,7 @@ export class AppComponent implements OnInit, OnDestroy {
   trackReady = false;
   senderTrack: MediaStreamTrack;
   dataChannel: RTCDataChannel;
+  private audioElement;
 
   constructor(private rtcService: RTCService) {}
 
@@ -53,6 +54,7 @@ export class AppComponent implements OnInit, OnDestroy {
   initializeAudio() {
     this.audioContext = new AudioContext();
     navigator.mediaDevices.getUserMedia({audio: ({autoGainControl: false} as any), video: false}).then(stream => {
+      this.audioElement = new Audio();
       this.inputStream = stream;
       this.inputStreamTrack = stream.getAudioTracks()[0];
       this.initAudioInput(stream);
@@ -106,7 +108,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
       };
       this.dataChannel.onopen = () => {
-
+        window.onbeforeunload = () => {
+          this.closeConnection();
+          return null;
+        };
       };
       this.dataChannel.onmessage = message => {
         let parsedData: {type: string, data: string} = JSON.parse(message.data);
@@ -128,8 +133,8 @@ export class AppComponent implements OnInit, OnDestroy {
       this.vadNode.connect(this.inputVolumeNode);
       // let sensitivityParam = (this.vadNode.parameters as any).get('sensitivity');
       this.inputVolumeNode.connect(this.sendAudioNode);
-      this.audioElement.nativeElement.srcObject = this.sendAudioNode.stream;
-      this.audioElement.nativeElement.muted = true;
+      this.audioElement.srcObject = this.sendAudioNode.stream;
+      this.audioElement.muted = true;
       // this.sendAudioNode.connect(this.audioContext.destination);
       // this.inputVolumeNode.connect(this.audioContext.destination);
       this.connectAudio();
@@ -141,16 +146,16 @@ export class AppComponent implements OnInit, OnDestroy {
     this.remoteConnection.getSenders()[0].replaceTrack(null);
     let remoteStream = new MediaStream();
     remoteStream.addTrack(this.remoteConnection.getReceivers().find(r => r.track.kind === 'audio').track);
-    this.audioElement.nativeElement.srcObject = remoteStream;
-    this.audioElement.nativeElement.muted = true;
+    this.audioElement.srcObject = remoteStream;
+    this.audioElement.muted = true;
     // maybe do this beforehand so the user can modify it
     this.audioContext.audioWorklet.addModule('../assets/Scripts/outputInterceptor.js').then(() => {
-      let outputInterceptor = new AudioWorkletNode(this.audioContext, 'OutputInterceptor');
+      // let outputInterceptor = new AudioWorkletNode(this.audioContext, 'OutputInterceptor');
       this.outputVolumeNode = this.audioContext.createGain();
       let remoteSource = this.audioContext.createMediaStreamSource(remoteStream);
       this.outputVolumeNode.gain.value = .2;
-      remoteSource.connect(outputInterceptor);
-      outputInterceptor.connect(this.outputVolumeNode);
+      remoteSource.connect(this.outputVolumeNode);
+      // outputInterceptor.connect(this.outputVolumeNode);
       this.outputVolumeNode.connect(this.audioContext.destination);
     });
   }

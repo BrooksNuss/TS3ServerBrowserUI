@@ -1,6 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { transition, state, trigger, style, animate } from '@angular/animations';
 import { ServerBrowserCacheService } from 'src/app/server-browser/services/server-browser-cache.service';
+import { CacheUpdateEvent } from 'src/app/server-browser/models/Events';
+import { User } from 'src/app/server-browser/models/User';
 
 @Component({
   selector: 'sidenav-content',
@@ -27,11 +29,19 @@ export class SidenavContentComponent implements OnInit {
   get sidebarOpen() {
     return this._sidebarOpen;
   }
-
   private _sidebarOpen = true;
+  public usersList = new Map<number, User>();
 
   constructor(private sbc: ServerBrowserCacheService) { }
 
   ngOnInit() {
+    this.sbc.cacheUpdate$.subscribe((event: CacheUpdateEvent) => {
+      // if (event.event.type === 'clientconnect') {
+      //   // if existed, update. if not existed, add. if disconnect, update
+      //   if (this.usersList.get(event.event.client.client_database_id)) {
+      //     console.log();
+      //   }
+      // }
+    });
   }
 }
