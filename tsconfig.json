@@ -19,6 +19,7 @@
       "es2018",
       "dom"
     ],
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "downlevelIteration": true
   }
 }

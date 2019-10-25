@@ -7,7 +7,7 @@ import { ServerGroup } from './models/ServerGroup';
 import { ServerBrowserCacheService } from './services/server-browser-cache.service';
 import { ChannelGroup } from './models/ChannelGroup';
 import { ChannelRowComponent } from './channel-row/channel-row.component';
-import { ClientConnectEventResponse, ClientDisconnectEventResponse, ClientMovedEventResponse, CacheUpdateEvent } from './models/Events';
+import { ClientConnectEvent, ClientDisconnectEvent, ClientMovedEvent, CacheUpdateEvent } from './models/Events';
 import { ServerBrowserSocketService } from './services/server-browser-socket.service';
 
 @Component({
@@ -40,7 +40,7 @@ export class ServerBrowserComponent implements OnInit {
     let channelGroups: ChannelGroup[] = [];
     // wait for all backend calls to complete
     forkJoin(channelsReq, usersReq, serverGroupsReq, channelGroupsReq).subscribe(values => {
-      // handle all channel responses
+      // handle all channel s
       values[0].forEach(value => {
         channels.push({...value, users: [], subChannels: []});
       });
@@ -51,19 +51,19 @@ export class ServerBrowserComponent implements OnInit {
         }
       });
       this.updateTopChannels(channels);
-      // handle all user responses
+      // handle all user s
       values[1].forEach(user => {
         users.push(user);
         channels.find(channel => channel.cid === user.cid).users.push(user);
       });
-      // handle all server group responses
+      // handle all server group s
       values[2].forEach(group => {
         // do this on the backend
         const groupModel: ServerGroup = group.group;
         groupModel.icon = group.icon;
         serverGroups.push(groupModel);
       });
-      // handle all channel group responses
+      // handle all channel group s
       values[3].forEach(group => {
         const groupModel: ChannelGroup = group.group;
         groupModel.icon = group.icon;
@@ -82,19 +82,19 @@ export class ServerBrowserComponent implements OnInit {
       switch (cacheUpdate.event.type) {
         case 'clientconnect': {
           users = this.scs.users;
-          let channel = this.getChannelRowByCid((cacheUpdate.event as ClientConnectEventResponse).cid);
+          let channel = this.getChannelRowByCid((cacheUpdate.event as ClientConnectEvent).cid);
         } break; case 'clientdisconnect': {
           users = this.scs.users;
-          let channel = this.getChannelRowByCid((cacheUpdate.event as ClientDisconnectEventResponse).event.clid);
+          let channel = this.getChannelRowByCid((cacheUpdate.event as ClientDisconnectEvent).event.clid);
         } break; case 'clientmoved': {
           users = this.scs.users;
           // this channel hasn't been updated yet, so we can still find this channel by looking for the user
           // incorrect, needs work
           let previousChannel = channels.find(channel =>
-            channel.users.findIndex(user => user.clid === (cacheUpdate.event as ClientMovedEventResponse).client.clid) !== -1
+            channel.users.findIndex(user => user.clid === (cacheUpdate.event as ClientMovedEvent).client.clid) !== -1
           );
           let channelf = this.getChannelRowByCid(previousChannel.cid);
-          let channelt = this.getChannelRowByCid((cacheUpdate.event as ClientMovedEventResponse).channel.cid);
+          let channelt = this.getChannelRowByCid((cacheUpdate.event as ClientMovedEvent).channel.cid);
         } break;
         case 'channeledit': {
           channels = this.scs.channels;

@@ -167,12 +167,12 @@ export class AppComponent implements OnInit, OnDestroy {
       }
       if (msg.data === 'activate') {
         if (this.dataChannel) {
-          this.dataChannel.send('unmute');
+          this.dataChannel.send('VAD_ACTIVE');
         }
         this.remoteConnection.getSenders()[0].replaceTrack(this.senderTrack);
       } else if (msg.data === 'deactivate') {
         if (this.dataChannel) {
-          this.dataChannel.send('mute');
+          this.dataChannel.send('VAD_INACTIVE');
         }
         this.remoteConnection.getSenders()[0].replaceTrack(null);
       }
@@ -188,7 +188,15 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   closeConnection() {
-    this.dataChannel.send('close');
+    this.dataChannel.send('DISCONNECT');
+  }
+
+  muteInput() {
+    this.dataChannel.send('TOGGLE_MUTE_INPUT');
+  }
+
+  muteOutput() {
+    this.dataChannel.send('TOGGLE_MUTE_OUTPUT');
   }
 
   toggleSidebar() {

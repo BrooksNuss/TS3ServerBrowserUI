@@ -1,7 +1,9 @@
-import { UserResponse } from './UserResponse';
-import { ChannelResponse } from './ChannelResponse';
+import { Channel } from './Channel';
+import { User } from './User';
+import { ServerGroup } from './ServerGroup';
+import { ChannelGroup } from './ChannelGroup';
 
-export interface ClientDisconnectEventResponse {
+export interface ClientDisconnectEvent {
   client: {clid: number};
   event: {
     cfid: number;
@@ -13,47 +15,60 @@ export interface ClientDisconnectEventResponse {
   type: 'clientdisconnect';
 }
 
-export interface ClientConnectEventResponse {
+export interface ClientConnectEvent {
   cid: number;
-  client: UserResponse;
+  client: User;
   type: 'clientconnect';
 }
 
-export interface ClientMovedEventResponse {
-  channel: ChannelResponse;
-  client: UserResponse;
+export interface ClientMovedEvent {
+  channel: Channel;
+  client: User;
   reasonId: number;
   type: 'clientmoved';
 }
 
-export interface ChannelEditEventResponse {
-  channel: ChannelResponse;
-  invoker: UserResponse;
+export interface ChannelEditEvent {
+  channel: Channel;
+  invoker: User;
   modified: {};
   reasonId: number;
   type: 'channeledit';
 }
 
-export interface ChannelCreateEventResponse {
-  channel: ChannelResponse;
+export interface ChannelCreateEvent {
+  channel: Channel;
   cpid: string;
-  invoker: UserResponse;
+  invoker: User;
   modified: {};
   type: 'channelcreate';
 }
 
-export interface ChannelMovedEventResponse {
-  channel: ChannelResponse;
-  invoker: UserResponse;
+export interface ChannelMovedEvent {
+  channel: Channel;
+  invoker: User;
   order: string;
-  parent: ChannelResponse;
+  parent: Channel;
   type: 'channelmoved';
 }
 
-export interface ChannelDeletedEventResponse {
+export interface ChannelDeletedEvent {
   cid: number;
-  invoker: UserResponse;
+  invoker: User;
   type: 'channeldelete';
+}
+
+export interface ClientUpdateEvent {
+  client: User;
+  type: 'clientupdate';
+}
+
+export interface CacheInitEvent {
+  clients: User[];
+  channels: Channel[];
+  serverGroups: ServerGroup[];
+  channelGroups: ChannelGroup[];
+  type: 'cacheinit';
 }
 
 export interface CacheUpdateEvent {
@@ -61,17 +76,20 @@ export interface CacheUpdateEvent {
   event: TS3ServerEvent;
 }
 
-export type TS3ServerEvent = ClientDisconnectEventResponse |
-  ClientConnectEventResponse |
-  ClientMovedEventResponse |
-  ChannelEditEventResponse |
-  ChannelCreateEventResponse |
-  ChannelMovedEventResponse |
-  ChannelDeletedEventResponse;
+export type TS3ServerEvent = ClientDisconnectEvent |
+  ClientConnectEvent |
+  ClientMovedEvent |
+  ChannelEditEvent |
+  ChannelCreateEvent |
+  ChannelMovedEvent |
+  ChannelDeletedEvent |
+  ClientUpdateEvent |
+  CacheInitEvent;
 
-export type TS3ClientEvents = ClientDisconnectEventResponse |
-  ClientConnectEventResponse |
-  ClientMovedEventResponse;
+export type TS3ClientEvents = ClientDisconnectEvent |
+  ClientConnectEvent |
+  ClientMovedEvent |
+  ClientUpdateEvent;
 
 export type TS3ServerEventType = 'clientdisconnect' |
   'clientconnect' |
@@ -79,4 +97,5 @@ export type TS3ServerEventType = 'clientdisconnect' |
   'channeledit' |
   'channelcreate' |
   'channelmoved' |
-  'channeldelete';
+  'channeldelete' |
+  'clientupdate';

@@ -6,7 +6,7 @@ import { ServerGroup } from '../models/ServerGroup';
 import { Icon } from '../models/Icon';
 import { ChannelGroup } from '../models/ChannelGroup';
 import { Subject, Observable } from 'rxjs';
-import { ClientConnectEventResponse, ClientDisconnectEventResponse, ClientMovedEventResponse, ChannelEditEventResponse, CacheUpdateEvent, ChannelCreateEventResponse, ChannelMovedEventResponse, ChannelDeletedEventResponse, TS3ServerEvent, TS3ServerEventType } from '../models/Events';
+import { ClientConnectEvent, ClientDisconnectEvent, ClientMovedEvent, ChannelEditEvent, CacheUpdateEvent, ChannelCreateEvent, ChannelMovedEvent, ChannelDeletedEvent, TS3ServerEvent, TS3ServerEventType, ClientUpdateEvent, CacheInitEvent } from '../models/Events';
 
 @Injectable()
 export class ServerBrowserCacheService {
@@ -20,6 +20,8 @@ export class ServerBrowserCacheService {
   // general cache update observable. emits all cache update events, can be subscribed to anywhere.
   private cacheSubject = new Subject<CacheUpdateEvent>();
   public cacheUpdate$ = this.cacheSubject.asObservable();
+  private cacheInitSubject = new Subject<CacheInitEvent>();
+  public cacheInit$ = this.cacheInitSubject.asObservable();
 
   constructor() { }
 
@@ -34,6 +36,7 @@ export class ServerBrowserCacheService {
     this.channels.forEach(channel => {
       this.channelCacheUpdates[channel.cid] = new Subject();
     });
+    this.broadcastCacheInit();
   }
 
   getIcon(iconId: string) {
@@ -50,7 +53,18 @@ export class ServerBrowserCacheService {
       .map(group => ({data: group.icon, iconId: group.iconid}));
   }
 
-  connectUser(event: ClientConnectEventResponse) {
+  broadcastCacheInit() {
+    let event: CacheInitEvent = {
+      clients: this.users,
+      channels: this.channels,
+      serverGroups: this.serverGroups,
+      channelGroups: this.channelGroups,
+      type: 'cacheinit'
+    };
+    this.cacheInitSubject.next(event);
+  }
+
+  connectUser(event: ClientConnectEvent) {
     // add user to cache, update channel user connected to.
     // by default, event client has no cid, instead has a ctid
     event.client.cid = event.client['ctid'];
@@ -60,7 +74,7 @@ export class ServerBrowserCacheService {
     this.cacheSubject.next(cacheUpdateEvent);
   }
 
-  disconnectUser(event: ClientDisconnectEventResponse) {
+  disconnectUser(event: ClientDisconnectEvent) {
     // remove user from cache, update channel user disconnected from.
     let clientIndex = this.users.findIndex(client => client.clid === event.client.clid);
     this.users.splice(clientIndex);
@@ -69,7 +83,7 @@ export class ServerBrowserCacheService {
     this.cacheSubject.next(cacheUpdateEvent);
   }
 
-  moveUser(event: ClientMovedEventResponse) {
+  moveUser(event: ClientMovedEvent) {
     // remove client from previous channel, update client, add to new channel.
     let clientIndex = this.users.findIndex(client => client.clid === event.client.clid);
     let oldChannel = this.channels.find(channel => channel.cid === this.users[clientIndex].cid);
@@ -82,14 +96,14 @@ export class ServerBrowserCacheService {
     this.cacheSubject.next(cacheUpdateEvent);
   }
 
-  editChannel(event: ChannelEditEventResponse) {
+  editChannel(event: ChannelEditEvent) {
     // set channel as new channel
     let cacheUpdateEvent = this.createCacheUpdateEvent(event.channel.cid, event, 'channeledit');
     this.channelCacheUpdates[event.channel.cid].next(cacheUpdateEvent);
     this.cacheSubject.next(cacheUpdateEvent);
   }
 
-  createChannel(event: ChannelCreateEventResponse) {
+  createChannel(event: ChannelCreateEvent) {
     // for a temporary channel, we need to move the user into it
     let parentChannel = this.channels.find(channel => channel.cid === parseInt(event.cpid));
     (event.channel as Channel).subChannels = [];
@@ -103,7 +117,7 @@ export class ServerBrowserCacheService {
     this.cacheSubject.next(cacheUpdateEvent);
   }
 
-  moveChannel(event: ChannelMovedEventResponse) {
+  moveChannel(event: ChannelMovedEvent) {
     // update cache, old parent, new parent, and channel
     let oldParent = this.channels.find(channel => channel.cid === event.channel.cid);
     this.channels[this.channels.findIndex(channel => channel.cid === event.channel.cid)] = event.channel;
@@ -118,7 +132,7 @@ export class ServerBrowserCacheService {
     this.cacheSubject.next(cacheUpdateEvent);
   }
 
-  deleteChannel(event: ChannelDeletedEventResponse) {
+  deleteChannel(event: ChannelDeletedEvent) {
     // update cache, parent
     let parentId = this.channels.find(channel => channel.cid === event.cid).pid;
     this.channels.splice(this.channels.findIndex(channel => channel.cid === event.cid), 1);
@@ -128,6 +142,14 @@ export class ServerBrowserCacheService {
     }
     this.cacheSubject.next(cacheUpdateEvent);
     // this.cacheSubject.next({cid: event.cid, event, type: 'channeldelete'});
+  }
+
+  updateClient(event?: ClientUpdateEvent) {
+    let userIndex = this.users.findIndex(user => user.cid === event.client.clid);
+    this.users[userIndex] = event.client;
+    let cacheUpdateEvent = this.createCacheUpdateEvent(event.client.cid, event, 'clientupdate');
+    this.channelCacheUpdates[event.client.cid].next(cacheUpdateEvent);
+    this.cacheSubject.next(cacheUpdateEvent);
   }
 
   private createCacheUpdateEvent(cid: number, event: TS3ServerEvent, type: TS3ServerEventType): CacheUpdateEvent {

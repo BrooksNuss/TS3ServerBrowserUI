@@ -29,4 +29,5 @@ export interface User {
   client_country: string;
   connection_client_ip: string;
   serverGroupIconIds: Array<string>;
+  awayStatus: number;
 }

@@ -3,11 +3,13 @@
   flex-direction: column;
   margin: 5px;
   overflow: hidden;
+  white-space: nowrap;
 
   .contact {
     display: flex;
     flex-direction: row;
     align-items: center;
+    margin-bottom: 5px;
 
     .avatar {
       width: 40px;
