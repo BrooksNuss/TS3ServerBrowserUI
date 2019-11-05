@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ServerGroupResponse } from '../models/ServerGroupResponse';
 import { ChannelGroupResponse } from '../models/ChannelGroupResponse';
-import { User } from '../models/User';
+import { ClientResponse } from '../models/User';
 import { ChannelResponse } from '../models/ChannelResponse';
 @Injectable()
 export class ServerBrowserService {
@@ -13,8 +13,8 @@ export class ServerBrowserService {
 
   constructor(private http: HttpClient) { }
 
-  getUserList(): Observable<User[]> {
-    return this.http.get<User[]>(this.apiPath + '/users/list');
+  getUserList(): Observable<ClientResponse[]> {
+    return this.http.get<ClientResponse[]>(this.apiPath + '/users/list');
   }
 
   getChannelList(): Observable<ChannelResponse[]> {
