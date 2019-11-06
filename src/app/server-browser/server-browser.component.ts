@@ -29,20 +29,19 @@ export class ServerBrowserComponent implements OnInit {
 
   // all initial load logic takes place here (users, channels, icons, etc)
   ngOnInit() {
-    const channelsReq = this.sbs.getChannelList();
-    const usersReq = this.sbs.getUserList();
-    const serverGroupsReq = this.sbs.getServerGroupList();
-    const channelGroupsReq = this.sbs.getChannelGroupList();
+    // const channelsReq = this.sbs.getChannelList();
+    // const usersReq = this.sbs.getUserList();
+    // const serverGroupsReq = this.sbs.getServerGroupList();
+    // const channelGroupsReq = this.sbs.getChannelGroupList();
+    const sbLookup = this.sbs.getLookup();
     let channels: Channel[] = [];
     let topChannels: Channel[] = [];
     let users: User[] = [];
     let serverGroups: ServerGroup[] = [];
     let channelGroups: ChannelGroup[] = [];
-    // wait for all backend calls to complete
-    forkJoin(channelsReq, usersReq, serverGroupsReq, channelGroupsReq).subscribe(values => {
-      // handle all channel s
-      values[0].forEach(value => {
-        channels.push({...value, users: [], subChannels: []});
+    sbLookup.subscribe(res => {
+      res.channels.forEach(channel => {
+        channels.push({...channel, users: [], subChannels: []});
       });
       channels.forEach(channel => {
         if (channel.pid !== 0) {
@@ -51,23 +50,15 @@ export class ServerBrowserComponent implements OnInit {
         }
       });
       this.updateTopChannels(channels);
-      // handle all user s
-      values[1].forEach(user => {
+      res.clients.forEach(user => {
         users.push(user);
         channels.find(channel => channel.cid === user.cid).users.push(user);
       });
-      // handle all server group s
-      values[2].forEach(group => {
-        // do this on the backend
-        const groupModel: ServerGroup = group.group;
-        groupModel.icon = group.icon;
-        serverGroups.push(groupModel);
+      res.serverGroups.forEach(group => {
+        serverGroups.push(group);
       });
-      // handle all channel group s
-      values[3].forEach(group => {
-        const groupModel: ChannelGroup = group.group;
-        groupModel.icon = group.icon;
-        channelGroups.push(groupModel);
+      res.channelGroups.forEach(group => {
+        channelGroups.push(group);
       });
       this.scs.channels = channels;
       this.scs.users = users;
@@ -77,7 +68,6 @@ export class ServerBrowserComponent implements OnInit {
         .concat(channelGroups.map(g => ({data: g.icon, iconId: g.iconid})));
       this.scs.initCache(channels, users, serverGroups, channelGroups, icons);
     });
-
     this.cacheSubscription = this.scs.cacheUpdate$.subscribe((cacheUpdate: CacheUpdateEvent) => {
       switch (cacheUpdate.event.type) {
         case 'clientconnect': {
