@@ -31,4 +31,5 @@ export interface User {
   serverGroupIconIds: Array<string>;
   awayStatus: number;
   avatar: string;
+  avatarGUID: string;
 }

@@ -4,6 +4,8 @@ import { ServerBrowserCacheService } from 'src/app/server-browser/services/serve
 import { CacheUpdateEvent, ClientDisconnectEvent } from 'src/app/server-browser/models/Events';
 import { User } from 'src/app/server-browser/models/User';
 import { takeWhile, filter, take } from 'rxjs/operators';
+import { ServerBrowserService } from 'src/app/server-browser/services/server-browser.service';
+import { ClientAvatarCache } from 'src/app/server-browser/models/AvatarCacheModel';
 
 @Component({
   selector: 'sidenav-content',
@@ -36,7 +38,7 @@ export class SidenavContentComponent implements OnInit {
     return Array.from(this.usersList.values());
   }
 
-  constructor(private sbc: ServerBrowserCacheService) { }
+  constructor(private sbc: ServerBrowserCacheService, private sbs: ServerBrowserService) { }
 
   ngOnInit() {
     this.sbc.cacheUpdate$.subscribe((event: CacheUpdateEvent) => {
@@ -58,6 +60,7 @@ export class SidenavContentComponent implements OnInit {
       }
     });
 
+    // away status
     this.sbc.cacheInit$.pipe(take(1)).subscribe(init => {
       init.clients.forEach(user => this.usersList.set(user.client_database_id, user));
       this.usersList.forEach(user => {
@@ -68,6 +71,31 @@ export class SidenavContentComponent implements OnInit {
         } else {
           user.awayStatus = 1;
         }
+      });
+    });
+
+    // avatars
+    const expiredList: number[] = [];
+    this.usersList.forEach(client => {
+      const key = `client_${client.client_database_id}_avatar`;
+      const storageItem = localStorage.getItem(key);
+      if (storageItem) {
+        const parsedStorageItem: ClientAvatarCache = JSON.parse(storageItem);
+        if (client.avatarGUID === parsedStorageItem.avatarGUID) {
+          client.avatar = parsedStorageItem.avatarBuffer;
+        } else {
+          expiredList.push(client.client_database_id);
+          localStorage.removeItem(key);
+        }
+      } else {
+        expiredList.push(client.client_database_id);
+      }
+    });
+    this.sbs.getClientAvatars(expiredList).subscribe(res => {
+      res.forEach((avatar: ClientAvatarCache) => {
+        this.usersList.get(avatar.clientDBId).avatar = avatar.avatarBuffer;
+        // save to localstorage
+
       });
     });
   }

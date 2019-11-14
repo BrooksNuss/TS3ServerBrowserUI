@@ -7,6 +7,7 @@ import { ChannelGroupResponse } from '../models/ChannelGroupResponse';
 import { User } from '../models/User';
 import { ChannelResponse } from '../models/ChannelResponse';
 import { ServerBrowserLookup } from '../models/Lookup';
+import { ClientAvatarCache } from '../models/AvatarCacheModel';
 @Injectable()
 export class ServerBrowserService {
 
@@ -32,5 +33,9 @@ export class ServerBrowserService {
 
   getLookup(): Observable<ServerBrowserLookup> {
     return this.http.get<ServerBrowserLookup>(this.apiPath + '/lookup');
+  }
+
+  getClientAvatars(clientDBIdList: number[]): Observable<ClientAvatarCache[]> {
+    return this.http.post<ClientAvatarCache[]>(this.apiPath + '/users/avatar', clientDBIdList);
   }
 }
