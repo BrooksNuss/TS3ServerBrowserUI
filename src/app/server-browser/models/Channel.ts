@@ -1,7 +1,7 @@
 import { ChannelResponse } from './ChannelResponse';
-import { User } from './User';
+import { Client } from './User';
 
 export interface Channel extends ChannelResponse {
-  users?: Array<User>;
+  users?: Array<Client>;
   subChannels?: Channel[];
 }

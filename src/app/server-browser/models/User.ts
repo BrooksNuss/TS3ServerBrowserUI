@@ -1,4 +1,4 @@
-export interface User {
+export interface Client {
   namespace: string;
   clid: number;
   cid: number;
@@ -29,7 +29,9 @@ export interface User {
   client_country: string;
   connection_client_ip: string;
   serverGroupIconIds: Array<string>;
-  awayStatus: number;
+  awayStatus: AwayStatus;
   avatar: string;
   avatarGUID: string;
 }
+
+export type AwayStatus = 'ACTIVE' | 'INACTIVE' | 'AWAY' | 'OFFLINE';

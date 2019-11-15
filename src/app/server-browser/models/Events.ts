@@ -1,5 +1,5 @@
 import { Channel } from './Channel';
-import { User } from './User';
+import { Client, AwayStatus } from './User';
 import { ServerGroup } from './ServerGroup';
 import { ChannelGroup } from './ChannelGroup';
 
@@ -17,20 +17,20 @@ export interface ClientDisconnectEvent {
 
 export interface ClientConnectEvent {
   cid: number;
-  client: User;
+  client: Client;
   type: 'clientconnect';
 }
 
 export interface ClientMovedEvent {
   channel: Channel;
-  client: User;
+  client: Client;
   reasonId: number;
   type: 'clientmoved';
 }
 
 export interface ChannelEditEvent {
   channel: Channel;
-  invoker: User;
+  invoker: Client;
   modified: {};
   reasonId: number;
   type: 'channeledit';
@@ -38,15 +38,15 @@ export interface ChannelEditEvent {
 
 export interface ChannelCreateEvent {
   channel: Channel;
-  cpid: string;
-  invoker: User;
+  cpid: number;
+  invoker: Client;
   modified: {};
   type: 'channelcreate';
 }
 
 export interface ChannelMovedEvent {
   channel: Channel;
-  invoker: User;
+  invoker: Client;
   order: string;
   parent: Channel;
   type: 'channelmoved';
@@ -54,17 +54,27 @@ export interface ChannelMovedEvent {
 
 export interface ChannelDeletedEvent {
   cid: number;
-  invoker: User;
+  invoker: Client;
   type: 'channeldelete';
 }
 
 export interface ClientUpdateEvent {
-  client: User;
+  client: Client;
   type: 'clientupdate';
 }
 
+export interface ClientStatusEvent {
+  clients: ClientStatus[];
+  type: 'clientstatus';
+}
+
+export interface ClientStatus {
+  clientDBId: number;
+  status: AwayStatus;
+}
+
 export interface CacheInitEvent {
-  clients: User[];
+  clients: Client[];
   channels: Channel[];
   serverGroups: ServerGroup[];
   channelGroups: ChannelGroup[];

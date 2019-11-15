@@ -2,7 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { transition, state, trigger, style, animate } from '@angular/animations';
 import { ServerBrowserCacheService } from 'src/app/server-browser/services/server-browser-cache.service';
 import { CacheUpdateEvent, ClientDisconnectEvent } from 'src/app/server-browser/models/Events';
-import { User } from 'src/app/server-browser/models/User';
+import { Client } from 'src/app/server-browser/models/User';
 import { takeWhile, filter, take } from 'rxjs/operators';
 import { ServerBrowserService } from 'src/app/server-browser/services/server-browser.service';
 import { ClientAvatarCache } from 'src/app/server-browser/models/AvatarCacheModel';
@@ -33,8 +33,8 @@ export class SidenavContentComponent implements OnInit {
     return this._sidebarOpen;
   }
   private _sidebarOpen = true;
-  public usersList = new Map<number, User>();
-  public get usersArray(): User[] {
+  public usersList = new Map<number, Client>();
+  public get usersArray(): Client[] {
     return Array.from(this.usersList.values());
   }
 
@@ -46,16 +46,16 @@ export class SidenavContentComponent implements OnInit {
         // if existed, update. if not existed, add. if disconnect, update
         let existingUser = this.usersList.get(event.event.client.client_database_id);
         if (existingUser) {
-          existingUser.awayStatus = 1;
+          existingUser.awayStatus = 'ACTIVE';
         } else {
-          event.event.client.awayStatus = 1;
+          event.event.client.awayStatus = 'ACTIVE';
           this.usersList.set(event.event.client.client_database_id, event.event.client);
         }
       } else if (event.event.type === 'clientdisconnect') {
         let existingUser = this.usersArray
           .find(user => user.client_database_id === (event.event as ClientDisconnectEvent).client.clid);
         if (existingUser) {
-          existingUser.awayStatus = 0;
+          existingUser.awayStatus = 'OFFLINE';
         }
       }
     });
@@ -65,11 +65,11 @@ export class SidenavContentComponent implements OnInit {
       init.clients.forEach(user => this.usersList.set(user.client_database_id, user));
       this.usersList.forEach(user => {
         if (user.client_away) {
-          user.awayStatus = 3;
+          user.awayStatus = 'AWAY';
         } else if (user.client_idle_time > 300000) {
-          user.awayStatus = 2;
+          user.awayStatus = 'INACTIVE';
         } else {
-          user.awayStatus = 1;
+          user.awayStatus = 'ACTIVE';
         }
       });
     });
@@ -93,9 +93,9 @@ export class SidenavContentComponent implements OnInit {
     });
     this.sbs.getClientAvatars(expiredList).subscribe(res => {
       res.forEach((avatar: ClientAvatarCache) => {
-        this.usersList.get(avatar.clientDBId).avatar = avatar.avatarBuffer;
-        // save to localstorage
-
+        const client = this.usersList.get(avatar.clientDBId);
+        client.avatar = avatar.avatarBuffer;
+        localStorage.setItem(`client_${client.client_database_id}_avatar`, JSON.stringify(avatar));
       });
     });
   }

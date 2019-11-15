@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { ServerBrowserService } from '../services/server-browser.service';
-import { User } from '../models/User';
+import { Client } from '../models/User';
 import { ServerBrowserCacheService } from '../services/server-browser-cache.service';
 import { Icon } from '../models/Icon';
 
@@ -10,7 +10,7 @@ import { Icon } from '../models/Icon';
   styleUrls: ['./user-row.component.scss']
 })
 export class UserRowComponent implements OnInit {
-  @Input() userInfo: User;
+  @Input() userInfo: Client;
   serverGroupIcons: Array<Icon> = [];
   channelGroupIcons: Array<Icon> = [];
 

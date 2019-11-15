@@ -2,7 +2,7 @@ import { Component, OnInit, Input, ViewChildren, QueryList, ChangeDetectorRef } 
 import { ServerBrowserService } from './services/server-browser.service';
 import { forkJoin, Subject } from 'rxjs';
 import { Channel } from './models/Channel';
-import { User } from './models/User';
+import { Client } from './models/User';
 import { ServerGroup } from './models/ServerGroup';
 import { ServerBrowserCacheService } from './services/server-browser-cache.service';
 import { ChannelGroup } from './models/ChannelGroup';
@@ -36,7 +36,7 @@ export class ServerBrowserComponent implements OnInit {
     const sbLookup = this.sbs.getLookup();
     let channels: Channel[] = [];
     let topChannels: Channel[] = [];
-    let users: User[] = [];
+    let users: Client[] = [];
     let serverGroups: ServerGroup[] = [];
     let channelGroups: ChannelGroup[] = [];
     sbLookup.subscribe(res => {
@@ -60,10 +60,10 @@ export class ServerBrowserComponent implements OnInit {
       res.channelGroups.forEach(group => {
         channelGroups.push(group);
       });
-      this.scs.channels = channels;
-      this.scs.users = users;
-      this.scs.serverGroups = serverGroups;
-      this.scs.channelGroups = channelGroups;
+      // this.scs.channels = channels;
+      // this.scs.users = users;
+      // this.scs.serverGroups = serverGroups;
+      // this.scs.channelGroups = channelGroups;
       let icons = serverGroups.map(g => ({data: g.icon, iconId: g.iconid}))
         .concat(channelGroups.map(g => ({data: g.icon, iconId: g.iconid})));
       this.scs.initCache(channels, users, serverGroups, channelGroups, icons);
@@ -71,13 +71,13 @@ export class ServerBrowserComponent implements OnInit {
     this.cacheSubscription = this.scs.cacheUpdate$.subscribe((cacheUpdate: CacheUpdateEvent) => {
       switch (cacheUpdate.event.type) {
         case 'clientconnect': {
-          users = this.scs.users;
+          users = this.scs.clients;
           let channel = this.getChannelRowByCid((cacheUpdate.event as ClientConnectEvent).cid);
         } break; case 'clientdisconnect': {
-          users = this.scs.users;
+          users = this.scs.clients;
           let channel = this.getChannelRowByCid((cacheUpdate.event as ClientDisconnectEvent).event.clid);
         } break; case 'clientmoved': {
-          users = this.scs.users;
+          users = this.scs.clients;
           // this channel hasn't been updated yet, so we can still find this channel by looking for the user
           // incorrect, needs work
           let previousChannel = channels.find(channel =>
