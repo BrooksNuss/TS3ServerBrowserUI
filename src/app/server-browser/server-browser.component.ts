@@ -2,7 +2,7 @@ import { Component, OnInit, Input, ViewChildren, QueryList, ChangeDetectorRef } 
 import { ServerBrowserService } from './services/server-browser.service';
 import { forkJoin, Subject } from 'rxjs';
 import { Channel } from './models/Channel';
-import { Client } from './models/User';
+import { Client } from './models/Client';
 import { ServerGroup } from './models/ServerGroup';
 import { ServerBrowserCacheService } from './services/server-browser-cache.service';
 import { ChannelGroup } from './models/ChannelGroup';

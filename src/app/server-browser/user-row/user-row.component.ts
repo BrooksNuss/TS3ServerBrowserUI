@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { ServerBrowserService } from '../services/server-browser.service';
-import { Client } from '../models/User';
+import { Client } from '../models/Client';
 import { ServerBrowserCacheService } from '../services/server-browser-cache.service';
 import { Icon } from '../models/Icon';
 

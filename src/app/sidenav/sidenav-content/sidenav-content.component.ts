@@ -2,7 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { transition, state, trigger, style, animate } from '@angular/animations';
 import { ServerBrowserCacheService } from 'src/app/server-browser/services/server-browser-cache.service';
 import { CacheUpdateEvent, ClientDisconnectEvent } from 'src/app/server-browser/models/Events';
-import { Client } from 'src/app/server-browser/models/User';
+import { Client } from 'src/app/server-browser/models/Client';
 import { takeWhile, filter, take } from 'rxjs/operators';
 import { ServerBrowserService } from 'src/app/server-browser/services/server-browser.service';
 import { ClientAvatarCache } from 'src/app/server-browser/models/AvatarCacheModel';

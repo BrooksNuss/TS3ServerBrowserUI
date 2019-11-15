@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ServerGroupResponse } from '../models/ServerGroupResponse';
 import { ChannelGroupResponse } from '../models/ChannelGroupResponse';
-import { Client } from '../models/User';
+import { Client } from '../models/Client';
 import { ChannelResponse } from '../models/ChannelResponse';
 import { ServerBrowserLookup } from '../models/Lookup';
 import { ClientAvatarCache } from '../models/AvatarCacheModel';

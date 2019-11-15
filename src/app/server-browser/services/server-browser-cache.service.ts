@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Channel } from '../models/Channel';
-import { Client } from '../models/User';
+import { Client } from '../models/Client';
 import { ServerGroup } from '../models/ServerGroup';
 import { Icon } from '../models/Icon';
 import { ChannelGroup } from '../models/ChannelGroup';

@@ -1,5 +1,5 @@
 import { Channel } from './Channel';
-import { Client, AwayStatus } from './User';
+import { Client, AwayStatus } from './Client';
 import { ServerGroup } from './ServerGroup';
 import { ChannelGroup } from './ChannelGroup';
 

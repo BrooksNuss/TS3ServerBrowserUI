@@ -1,6 +1,6 @@
 import { ServerGroup } from './ServerGroup';
 import { ChannelGroup } from './ChannelGroup';
-import { Client } from './User';
+import { Client } from './Client';
 import { Channel } from './Channel';
 
 export interface ServerBrowserLookup {
