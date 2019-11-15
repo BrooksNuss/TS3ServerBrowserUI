@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 
 import { AppComponent } from './app.component';
-import { UserRowComponent } from './server-browser/user-row/user-row.component';
+import { ClientRowComponent } from './server-browser/client-row/client-row.component';
 import { ServerBrowserComponent } from './server-browser/server-browser.component';
 import { ChannelRowComponent } from './server-browser/channel-row/channel-row.component';
 import { ServerBrowserService } from './server-browser/services/server-browser.service';
@@ -28,7 +28,7 @@ const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, op
     AppComponent,
     ServerBrowserComponent,
     ChannelRowComponent,
-    UserRowComponent,
+    ClientRowComponent,
     TeamspeakIconDirective,
     SidenavContentComponent
   ],

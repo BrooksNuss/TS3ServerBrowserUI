@@ -120,9 +120,9 @@ export class ServerBrowserCacheService {
   moveUser(event: ClientMovedEvent) {
     // remove client from previous channel, update client, add to new channel.
     let oldChannel = this.channelsMap.get(event.client.cid);
-    oldChannel.users.splice(oldChannel.users.findIndex(user => user.clid === event.client.clid));
+    oldChannel.clients.splice(oldChannel.clients.findIndex(user => user.clid === event.client.clid));
     this.clientsMap.get(event.client.client_database_id).cid = event.channel.cid;
-    this.channelsMap.get(event.channel.cid).users.push(this.clientsMap.get(event.client.client_database_id));
+    this.channelsMap.get(event.channel.cid).clients.push(this.clientsMap.get(event.client.client_database_id));
     let cacheUpdateEvent = this.createCacheUpdateEvent(event.channel.cid, event, 'clientmoved');
     this.channelCacheUpdates[event.channel.cid].next(cacheUpdateEvent);
     this.channelCacheUpdates[oldChannel.cid].next(cacheUpdateEvent);
@@ -140,7 +140,7 @@ export class ServerBrowserCacheService {
     // for a temporary channel, we need to move the user into it
     let parentChannel = this.channelsMap.get(event.cpid);
     event.channel.subChannels = [];
-    event.channel.users = [];
+    event.channel.clients = [];
     // this.channels.push(event.channel);
     this.channelsMap.set(event.channel.cid, event.channel);
     let cacheUpdateEvent = this.createCacheUpdateEvent(event.channel.cid, event, 'channelcreate');

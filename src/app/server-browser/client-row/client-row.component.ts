@@ -5,25 +5,25 @@ import { ServerBrowserCacheService } from '../services/server-browser-cache.serv
 import { Icon } from '../models/Icon';
 
 @Component({
-  selector: 'user-row',
-  templateUrl: './user-row.component.html',
-  styleUrls: ['./user-row.component.scss']
+  selector: 'client-row',
+  templateUrl: './client-row.component.html',
+  styleUrls: ['./client-row.component.scss']
 })
-export class UserRowComponent implements OnInit {
-  @Input() userInfo: Client;
+export class ClientRowComponent implements OnInit {
+  @Input() clientInfo: Client;
   serverGroupIcons: Array<Icon> = [];
   channelGroupIcons: Array<Icon> = [];
 
   constructor(private sbs: ServerBrowserService, private scs: ServerBrowserCacheService) { }
 
   ngOnInit() {
-    this.serverGroupIcons = this.scs.getServerGroupIcons(...this.userInfo.client_servergroups);
-    this.channelGroupIcons = this.scs.getChannelGroupIcons(this.userInfo.client_channel_group_id);
+    this.serverGroupIcons = this.scs.getServerGroupIcons(...this.clientInfo.client_servergroups);
+    this.channelGroupIcons = this.scs.getChannelGroupIcons(this.clientInfo.client_channel_group_id);
     this.serverGroupIcons = this.serverGroupIcons.filter(icon => {
       return icon.data != null && icon.iconId !== '0';
     });
     this.channelGroupIcons = this.channelGroupIcons.filter(icon => {
       return icon.data != null && icon.iconId !== '0';
-    })
+    });
   }
 }

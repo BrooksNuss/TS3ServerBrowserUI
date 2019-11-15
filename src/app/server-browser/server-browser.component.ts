@@ -1,6 +1,5 @@
 import { Component, OnInit, Input, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
 import { ServerBrowserService } from './services/server-browser.service';
-import { forkJoin, Subject } from 'rxjs';
 import { Channel } from './models/Channel';
 import { Client } from './models/Client';
 import { ServerGroup } from './models/ServerGroup';
@@ -41,7 +40,7 @@ export class ServerBrowserComponent implements OnInit {
     let channelGroups: ChannelGroup[] = [];
     sbLookup.subscribe(res => {
       res.channels.forEach(channel => {
-        channels.push({...channel, users: [], subChannels: []});
+        channels.push({...channel, clients: [], subChannels: []});
       });
       channels.forEach(channel => {
         if (channel.pid !== 0) {
@@ -52,7 +51,7 @@ export class ServerBrowserComponent implements OnInit {
       this.updateTopChannels(channels);
       res.clients.forEach(user => {
         users.push(user);
-        channels.find(channel => channel.cid === user.cid).users.push(user);
+        channels.find(channel => channel.cid === user.cid).clients.push(user);
       });
       res.serverGroups.forEach(group => {
         serverGroups.push(group);
@@ -81,7 +80,7 @@ export class ServerBrowserComponent implements OnInit {
           // this channel hasn't been updated yet, so we can still find this channel by looking for the user
           // incorrect, needs work
           let previousChannel = channels.find(channel =>
-            channel.users.findIndex(user => user.clid === (cacheUpdate.event as ClientMovedEvent).client.clid) !== -1
+            channel.clients.findIndex(user => user.clid === (cacheUpdate.event as ClientMovedEvent).client.clid) !== -1
           );
           let channelf = this.getChannelRowByCid(previousChannel.cid);
           let channelt = this.getChannelRowByCid((cacheUpdate.event as ClientMovedEvent).channel.cid);

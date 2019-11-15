@@ -26,10 +26,10 @@ export class ChannelRowComponent implements OnInit, OnDestroy {
 
       switch (cacheUpdate.event.type) {
         case 'clientconnect': {
-          this.channel.users.push(cacheUpdate.event.client);
+          this.channel.clients.push(cacheUpdate.event.client);
         } break; case 'clientdisconnect': {
           let clientId = cacheUpdate.event.client.clid;
-          this.channel.users.splice(this.channel.users.findIndex(user => user.clid === clientId), 1);
+          this.channel.clients.splice(this.channel.clients.findIndex(user => user.clid === clientId), 1);
         } break; case 'clientmoved': {
           let clientId = cacheUpdate.event.client.clid;
         } break; case 'channeledit': {
@@ -47,10 +47,10 @@ export class ChannelRowComponent implements OnInit, OnDestroy {
             this.channel.subChannels.push(cacheUpdate.event.channel);
           } else if (this.channel.cid === cacheUpdate.cid) {
             // update channel
-            let currentUsers = this.channel.users;
+            let currentUsers = this.channel.clients;
             let currentSubChannels = this.channel.subChannels;
             this.channel = cacheUpdate.event.channel;
-            this.channel.users = currentUsers;
+            this.channel.clients = currentUsers;
             this.channel.subChannels = currentSubChannels;
           }
         } break; case 'channeldelete': {
