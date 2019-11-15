@@ -1,4 +1,4 @@
-<div class="channel-row" [ngClass]="{'sub-channel': isSubChannel}">
+<div class="channel-row" [ngClass]="{'sub-channel': isSubChannel}" (dblclick)="joinChannel()">
   <div class="row-header">
     <p>{{channel.channel_name}}</p>
     <div>

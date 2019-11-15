@@ -16,6 +16,7 @@ export class AudioService {
   senderTrack: MediaStreamTrack;
   dataChannel: RTCDataChannel;
   private audioElement;
+  connectedToAudio = false;
 
   constructor(private rtcService: RTCService) {}
 
@@ -56,10 +57,12 @@ export class AudioService {
               this.trackReady = true;
               this.remoteConnection.onconnectionstatechange = e => {
                 if (this.remoteConnection.connectionState === 'connected') {
+                  this.connectedToAudio = true;
                   this.initAudioOutput();
                 }
               };
               if (this.remoteConnection.connectionState === 'connected') {
+                this.connectedToAudio = true;
                 this.initAudioOutput();
               }
             });
@@ -83,7 +86,7 @@ export class AudioService {
       };
       this.dataChannel.onmessage = message => {
         let parsedData: {type: string, data: string} = JSON.parse(message.data);
-        if (parsedData.type === 'talkingClient') {
+        if (parsedData.type === 'TALKINGCLIENT') {
           console.log('talking client: ' + parsedData.data);
         }
       };

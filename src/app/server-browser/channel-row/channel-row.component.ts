@@ -2,6 +2,8 @@ import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { ServerBrowserCacheService } from '../services/server-browser-cache.service';
 import { Channel } from '../models/Channel';
 import { Subscription } from 'rxjs';
+import { AudioService } from 'src/app/services/audio.service';
+import { DataChannelMessage } from '../models/Events';
 
 @Component({
   selector: 'channel-row',
@@ -15,7 +17,7 @@ export class ChannelRowComponent implements OnInit, OnDestroy {
   @Input() channel: Channel;
   isSubChannel = false;
   private cacheSubscription: Subscription;
-  constructor(private scs: ServerBrowserCacheService) { }
+  constructor(private scs: ServerBrowserCacheService, private audioService: AudioService) { }
 
   ngOnInit() {
     // console.log(this.users);
@@ -66,5 +68,12 @@ export class ChannelRowComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.cacheSubscription.unsubscribe();
+  }
+
+  joinChannel() {
+    if (this.audioService.connectedToAudio) {
+      let event: DataChannelMessage = {type: 'JOINCHANNEL', data: this.channel.cid};
+      this.audioService.dataChannel.send(JSON.stringify(event));
+    }
   }
 }
