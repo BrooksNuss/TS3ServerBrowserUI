@@ -110,7 +110,7 @@ export type TS3ServerEventType = 'clientdisconnect' |
   'channeldelete' |
   'clientupdate';
 
-export interface DataChannelMessage {
+export interface DataChannelMessage<T = string> {
   type: string;
-  data: any;
+  data: T;
 }

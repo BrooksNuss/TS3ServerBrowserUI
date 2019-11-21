@@ -72,7 +72,7 @@ export class ChannelRowComponent implements OnInit, OnDestroy {
 
   joinChannel() {
     if (this.audioService.connectedToAudio) {
-      let event: DataChannelMessage = {type: 'JOINCHANNEL', data: this.channel.cid};
+      let event: DataChannelMessage<number> = {type: 'JOINCHANNEL', data: this.channel.cid};
       this.audioService.dataChannel.send(JSON.stringify(event));
     }
   }

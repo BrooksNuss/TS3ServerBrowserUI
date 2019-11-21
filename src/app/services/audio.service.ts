@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { RTCService } from './rtc.service';
+import { DataChannelMessage } from '../server-browser/models/Events';
 
 @Injectable()
 export class AudioService {
@@ -17,6 +18,7 @@ export class AudioService {
   dataChannel: RTCDataChannel;
   private audioElement;
   connectedToAudio = false;
+  clientId: number;
 
   constructor(private rtcService: RTCService) {}
 
@@ -85,9 +87,10 @@ export class AudioService {
         };
       };
       this.dataChannel.onmessage = message => {
-        let parsedData: {type: string, data: string} = JSON.parse(message.data);
-        if (parsedData.type === 'TALKINGCLIENT') {
-          console.log('talking client: ' + parsedData.data);
+        let parsedData: DataChannelMessage = JSON.parse(message.data);
+        switch (parsedData.type) {
+          case 'TALKING_CLIENT': console.log('talking client: ' + parsedData.data); break;
+          case 'CLIENT_ID': this.clientId = parseInt(parsedData.data); break;
         }
       };
     };
