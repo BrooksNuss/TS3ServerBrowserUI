@@ -20,6 +20,10 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { SidenavContentComponent } from './sidenav/sidenav-content/sidenav-content.component';
+import { TooltipMenuComponent } from './shared/tooltip-menu/tooltip-menu.component';
+import { TooltipMenuDirective } from './shared/tooltip-menu.directive';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { PortalModule } from '@angular/cdk/portal';
 
 const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, options: {}};
 
@@ -30,7 +34,9 @@ const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, op
     ChannelRowComponent,
     ClientRowComponent,
     TeamspeakIconDirective,
-    SidenavContentComponent
+    SidenavContentComponent,
+    TooltipMenuComponent,
+    TooltipMenuDirective
   ],
   imports: [
     BrowserModule,
@@ -41,7 +47,9 @@ const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, op
     MatSidenavModule,
     MatExpansionModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    OverlayModule,
+    PortalModule
   ],
   providers: [
     ServerBrowserService,

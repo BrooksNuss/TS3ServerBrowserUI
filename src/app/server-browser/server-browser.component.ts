@@ -8,6 +8,7 @@ import { ChannelGroup } from './models/ChannelGroup';
 import { ChannelRowComponent } from './channel-row/channel-row.component';
 import { ClientConnectEvent, ClientDisconnectEvent, ClientMovedEvent, CacheUpdateEvent } from './models/Events';
 import { ServerBrowserSocketService } from './services/server-browser-socket.service';
+import { ClientAvatarCache } from './models/AvatarCacheModel';
 
 @Component({
   selector: 'server-browser',
@@ -66,6 +67,7 @@ export class ServerBrowserComponent implements OnInit {
       let icons = serverGroups.map(g => ({data: g.icon, iconId: g.iconid}))
         .concat(channelGroups.map(g => ({data: g.icon, iconId: g.iconid})));
       this.scs.initCache(channels, users, serverGroups, channelGroups, icons);
+      this.getAvatars();
     });
     this.cacheSubscription = this.scs.cacheUpdate$.subscribe((cacheUpdate: CacheUpdateEvent) => {
       switch (cacheUpdate.event.type) {
@@ -111,5 +113,31 @@ export class ServerBrowserComponent implements OnInit {
     } else {
       this.topChannels = this.scs.channels.filter(channel => channel.pid === 0);
     }
+  }
+
+  getAvatars() {
+    const expiredList: number[] = [];
+    this.scs.clientsMap.forEach(client => {
+      const key = `client_${client.client_database_id}_avatar`;
+      const storageItem = localStorage.getItem(key);
+      if (storageItem) {
+        const parsedStorageItem: ClientAvatarCache = JSON.parse(storageItem);
+        if (client.avatarGUID === parsedStorageItem.avatarGUID) {
+          client.avatar = parsedStorageItem.avatarBuffer;
+        } else {
+          expiredList.push(client.client_database_id);
+          localStorage.removeItem(key);
+        }
+      } else {
+        expiredList.push(client.client_database_id);
+      }
+    });
+    this.sbs.getClientAvatars(expiredList).subscribe(res => {
+      res.forEach((avatar: ClientAvatarCache) => {
+        const client = this.scs.clientsMap.get(avatar.clientDBId);
+        client.avatar = avatar.avatarBuffer;
+        localStorage.setItem(`client_${client.client_database_id}_avatar`, JSON.stringify(avatar));
+      });
+    });
   }
 }

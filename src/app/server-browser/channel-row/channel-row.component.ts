@@ -17,6 +17,7 @@ export class ChannelRowComponent implements OnInit, OnDestroy {
   @Input() channel: Channel;
   isSubChannel = false;
   private cacheSubscription: Subscription;
+  collapsed = false;
   constructor(private scs: ServerBrowserCacheService, private audioService: AudioService) { }
 
   ngOnInit() {

@@ -73,30 +73,5 @@ export class SidenavContentComponent implements OnInit {
         }
       });
     });
-
-    // avatars
-    const expiredList: number[] = [];
-    this.usersList.forEach(client => {
-      const key = `client_${client.client_database_id}_avatar`;
-      const storageItem = localStorage.getItem(key);
-      if (storageItem) {
-        const parsedStorageItem: ClientAvatarCache = JSON.parse(storageItem);
-        if (client.avatarGUID === parsedStorageItem.avatarGUID) {
-          client.avatar = parsedStorageItem.avatarBuffer;
-        } else {
-          expiredList.push(client.client_database_id);
-          localStorage.removeItem(key);
-        }
-      } else {
-        expiredList.push(client.client_database_id);
-      }
-    });
-    this.sbs.getClientAvatars(expiredList).subscribe(res => {
-      res.forEach((avatar: ClientAvatarCache) => {
-        const client = this.usersList.get(avatar.clientDBId);
-        client.avatar = avatar.avatarBuffer;
-        localStorage.setItem(`client_${client.client_database_id}_avatar`, JSON.stringify(avatar));
-      });
-    });
   }
 }

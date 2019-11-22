@@ -1,8 +1,12 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, ElementRef } from '@angular/core';
 import { ServerBrowserService } from '../services/server-browser.service';
 import { Client } from '../models/Client';
 import { ServerBrowserCacheService } from '../services/server-browser-cache.service';
 import { Icon } from '../models/Icon';
+import { TooltipMenuComponent } from 'src/app/shared/tooltip-menu/tooltip-menu.component';
+import { TooltipConfig } from 'src/app/shared/models/TooltipConfig';
+import { FlexibleConnectedPositionStrategy, Overlay } from '@angular/cdk/overlay';
+import { TooltipMenuDirective } from 'src/app/shared/tooltip-menu.directive';
 
 @Component({
   selector: 'client-row',
@@ -13,6 +17,13 @@ export class ClientRowComponent implements OnInit {
   @Input() clientInfo: Client;
   serverGroupIcons: Array<Icon> = [];
   channelGroupIcons: Array<Icon> = [];
+  tooltipConfig: TooltipConfig = {
+    type: TooltipMenuComponent,
+    config: {},
+    openEvent: 'onmouseenter',
+    closeEvent: 'onmouseleave',
+    delay: 1000
+  };
 
   constructor(private sbs: ServerBrowserService, private scs: ServerBrowserCacheService) { }
 
