@@ -3,7 +3,7 @@ import { ServerBrowserService } from '../services/server-browser.service';
 import { Client } from '../models/Client';
 import { ServerBrowserCacheService } from '../services/server-browser-cache.service';
 import { Icon } from '../models/Icon';
-import { TooltipMenuComponent } from 'src/app/shared/tooltip-menu/tooltip-menu.component';
+import { TooltipMenuComponent } from 'src/app/shared/tooltip-context-menu/tooltip-context-menu.component';
 import { TooltipConfig } from 'src/app/shared/models/TooltipConfig';
 import { FlexibleConnectedPositionStrategy, Overlay } from '@angular/cdk/overlay';
 import { TooltipMenuDirective } from 'src/app/shared/tooltip-menu.directive';

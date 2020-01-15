@@ -20,7 +20,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { SidenavContentComponent } from './sidenav/sidenav-content/sidenav-content.component';
-import { TooltipMenuComponent } from './shared/tooltip-menu/tooltip-menu.component';
+import { TooltipMenuComponent } from './shared/tooltip-context-menu/tooltip-context-menu.component';
 import { TooltipMenuDirective } from './shared/tooltip-menu.directive';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';

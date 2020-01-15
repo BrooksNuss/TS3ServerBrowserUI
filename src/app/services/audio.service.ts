@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { RTCService } from './rtc.service';
-import { DataChannelMessage } from '../server-browser/models/Events';
+import { DataChannelService } from './dataChannel.service';
 
 @Injectable()
 export class AudioService {
@@ -15,12 +15,11 @@ export class AudioService {
   receiveAudioNode: MediaStreamAudioDestinationNode;
   trackReady = false;
   senderTrack: MediaStreamTrack;
-  dataChannel: RTCDataChannel;
   private audioElement;
   connectedToAudio = false;
   clientId: number;
 
-  constructor(private rtcService: RTCService) {}
+  constructor(private rtcService: RTCService, private dcs: DataChannelService) {}
 
   initializeAudio() {
     this.audioContext = new AudioContext();
@@ -75,25 +74,7 @@ export class AudioService {
   }
 
   setupDataChannel() {
-    this.remoteConnection.ondatachannel = channel => {
-      this.dataChannel = channel.channel;
-      this.dataChannel.onclose = () => {
-
-      };
-      this.dataChannel.onopen = () => {
-        window.onbeforeunload = () => {
-          this.closeConnection();
-          return null;
-        };
-      };
-      this.dataChannel.onmessage = message => {
-        let parsedData: DataChannelMessage = JSON.parse(message.data);
-        switch (parsedData.type) {
-          case 'TALKING_CLIENT': console.log('talking client: ' + parsedData.data); break;
-          case 'CLIENT_ID': this.clientId = parseInt(parsedData.data); break;
-        }
-      };
-    };
+    this.remoteConnection.ondatachannel = channel => this.dcs.setDataChannel(channel.channel);
   }
 
   initAudioInput(stream: MediaStream) {
@@ -140,28 +121,12 @@ export class AudioService {
         this.senderTrack = this.remoteConnection.getSenders()[0].track;
       }
       if (msg.data === 'activate') {
-        if (this.dataChannel) {
-          this.dataChannel.send('VAD_ACTIVE');
-        }
+        this.dcs.activateVAD();
         this.remoteConnection.getSenders()[0].replaceTrack(this.senderTrack);
       } else if (msg.data === 'deactivate') {
-        if (this.dataChannel) {
-          this.dataChannel.send('VAD_INACTIVE');
-        }
+        this.dcs.deactivateVAD();
         this.remoteConnection.getSenders()[0].replaceTrack(null);
       }
     };
-  }
-
-  closeConnection() {
-    this.dataChannel.send('DISCONNECT');
-  }
-
-  muteInput() {
-    this.dataChannel.send('TOGGLE_MUTE_INPUT');
-  }
-
-  muteOutput() {
-    this.dataChannel.send('TOGGLE_MUTE_OUTPUT');
   }
 }

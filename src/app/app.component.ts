@@ -2,6 +2,7 @@ import { Component, ViewChild, OnDestroy, OnInit } from '@angular/core';
 import { MatSidenav, MatSidenavContainer } from '@angular/material/sidenav';
 import { transition, state, trigger, style, animate } from '@angular/animations';
 import { AudioService } from './services/audio.service';
+import { DataChannelService } from './services/dataChannel.service';
 
 @Component({
   selector: 'app-root',
@@ -32,7 +33,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public sidebarOpen = true;
   title = 'ServerBrowserUI';
 
-  constructor(private audioService: AudioService) {}
+  constructor(private audioService: AudioService, private dcs: DataChannelService) {}
 
   ngOnInit() {
     // this.initializeAudio();
@@ -55,14 +56,14 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   closeConnection() {
-    this.audioService.dataChannel.send('DISCONNECT');
+    this.dcs.closeConnection();
   }
 
   muteInput() {
-    this.audioService.dataChannel.send('TOGGLE_MUTE_INPUT');
+    this.dcs.muteInput();
   }
 
   muteOutput() {
-    this.audioService.dataChannel.send('TOGGLE_MUTE_OUTPUT');
+    this.dcs.muteOutput();
   }
 }
