@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 
 import { AppComponent } from './app.component';
-import { UserRowComponent } from './server-browser/user-row/user-row.component';
+import { ClientRowComponent } from './server-browser/client-row/client-row.component';
 import { ServerBrowserComponent } from './server-browser/server-browser.component';
 import { ChannelRowComponent } from './server-browser/channel-row/channel-row.component';
 import { ServerBrowserService } from './server-browser/services/server-browser.service';
@@ -20,6 +20,10 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { SidenavContentComponent } from './sidenav/sidenav-content/sidenav-content.component';
+import { TooltipMenuComponent } from './shared/tooltip-context-menu/tooltip-context-menu.component';
+import { TooltipMenuDirective } from './shared/tooltip-menu.directive';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { PortalModule } from '@angular/cdk/portal';
 
 const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, options: {}};
 
@@ -28,9 +32,11 @@ const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, op
     AppComponent,
     ServerBrowserComponent,
     ChannelRowComponent,
-    UserRowComponent,
+    ClientRowComponent,
     TeamspeakIconDirective,
-    SidenavContentComponent
+    SidenavContentComponent,
+    TooltipMenuComponent,
+    TooltipMenuDirective
   ],
   imports: [
     BrowserModule,
@@ -41,7 +47,9 @@ const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, op
     MatSidenavModule,
     MatExpansionModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    OverlayModule,
+    PortalModule
   ],
   providers: [
     ServerBrowserService,

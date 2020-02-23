@@ -1,14 +1,14 @@
 import { Component, OnInit, Input, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
 import { ServerBrowserService } from './services/server-browser.service';
-import { forkJoin, Subject } from 'rxjs';
 import { Channel } from './models/Channel';
-import { User } from './models/User';
+import { Client } from './models/Client';
 import { ServerGroup } from './models/ServerGroup';
 import { ServerBrowserCacheService } from './services/server-browser-cache.service';
 import { ChannelGroup } from './models/ChannelGroup';
 import { ChannelRowComponent } from './channel-row/channel-row.component';
 import { ClientConnectEvent, ClientDisconnectEvent, ClientMovedEvent, CacheUpdateEvent } from './models/Events';
 import { ServerBrowserSocketService } from './services/server-browser-socket.service';
+import { ClientAvatarCache } from './models/AvatarCacheModel';
 
 @Component({
   selector: 'server-browser',
@@ -36,12 +36,12 @@ export class ServerBrowserComponent implements OnInit {
     const sbLookup = this.sbs.getLookup();
     let channels: Channel[] = [];
     let topChannels: Channel[] = [];
-    let users: User[] = [];
+    let users: Client[] = [];
     let serverGroups: ServerGroup[] = [];
     let channelGroups: ChannelGroup[] = [];
     sbLookup.subscribe(res => {
       res.channels.forEach(channel => {
-        channels.push({...channel, users: [], subChannels: []});
+        channels.push({...channel, clients: [], subChannels: []});
       });
       channels.forEach(channel => {
         if (channel.pid !== 0) {
@@ -52,7 +52,7 @@ export class ServerBrowserComponent implements OnInit {
       this.updateTopChannels(channels);
       res.clients.forEach(user => {
         users.push(user);
-        channels.find(channel => channel.cid === user.cid).users.push(user);
+        channels.find(channel => channel.cid === user.cid).clients.push(user);
       });
       res.serverGroups.forEach(group => {
         serverGroups.push(group);
@@ -60,28 +60,29 @@ export class ServerBrowserComponent implements OnInit {
       res.channelGroups.forEach(group => {
         channelGroups.push(group);
       });
-      this.scs.channels = channels;
-      this.scs.users = users;
-      this.scs.serverGroups = serverGroups;
-      this.scs.channelGroups = channelGroups;
+      // this.scs.channels = channels;
+      // this.scs.users = users;
+      // this.scs.serverGroups = serverGroups;
+      // this.scs.channelGroups = channelGroups;
       let icons = serverGroups.map(g => ({data: g.icon, iconId: g.iconid}))
         .concat(channelGroups.map(g => ({data: g.icon, iconId: g.iconid})));
       this.scs.initCache(channels, users, serverGroups, channelGroups, icons);
+      this.getAvatars();
     });
     this.cacheSubscription = this.scs.cacheUpdate$.subscribe((cacheUpdate: CacheUpdateEvent) => {
       switch (cacheUpdate.event.type) {
         case 'clientconnect': {
-          users = this.scs.users;
+          users = this.scs.clients;
           let channel = this.getChannelRowByCid((cacheUpdate.event as ClientConnectEvent).cid);
         } break; case 'clientdisconnect': {
-          users = this.scs.users;
+          users = this.scs.clients;
           let channel = this.getChannelRowByCid((cacheUpdate.event as ClientDisconnectEvent).event.clid);
         } break; case 'clientmoved': {
-          users = this.scs.users;
+          users = this.scs.clients;
           // this channel hasn't been updated yet, so we can still find this channel by looking for the user
           // incorrect, needs work
           let previousChannel = channels.find(channel =>
-            channel.users.findIndex(user => user.clid === (cacheUpdate.event as ClientMovedEvent).client.clid) !== -1
+            channel.clients.findIndex(user => user.clid === (cacheUpdate.event as ClientMovedEvent).client.clid) !== -1
           );
           let channelf = this.getChannelRowByCid(previousChannel.cid);
           let channelt = this.getChannelRowByCid((cacheUpdate.event as ClientMovedEvent).channel.cid);
@@ -112,5 +113,31 @@ export class ServerBrowserComponent implements OnInit {
     } else {
       this.topChannels = this.scs.channels.filter(channel => channel.pid === 0);
     }
+  }
+
+  getAvatars() {
+    const expiredList: number[] = [];
+    this.scs.clientsMap.forEach(client => {
+      const key = `client_${client.databaseId}_avatar`;
+      const storageItem = localStorage.getItem(key);
+      if (storageItem) {
+        const parsedStorageItem: ClientAvatarCache = JSON.parse(storageItem);
+        if (client.avatarGUID === parsedStorageItem.avatarGUID) {
+          client.avatar = parsedStorageItem.avatarBuffer;
+        } else {
+          expiredList.push(client.databaseId);
+          localStorage.removeItem(key);
+        }
+      } else {
+        expiredList.push(client.databaseId);
+      }
+    });
+    this.sbs.getClientAvatars(expiredList).subscribe(res => {
+      res.forEach((avatar: ClientAvatarCache) => {
+        const client = this.scs.clientsMap.get(avatar.clientDBId);
+        client.avatar = avatar.avatarBuffer;
+        localStorage.setItem(`client_${client.databaseId}_avatar`, JSON.stringify(avatar));
+      });
+    });
   }
 }

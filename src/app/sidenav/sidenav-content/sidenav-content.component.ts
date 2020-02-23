@@ -2,8 +2,10 @@ import { Component, OnInit, Input } from '@angular/core';
 import { transition, state, trigger, style, animate } from '@angular/animations';
 import { ServerBrowserCacheService } from 'src/app/server-browser/services/server-browser-cache.service';
 import { CacheUpdateEvent, ClientDisconnectEvent } from 'src/app/server-browser/models/Events';
-import { User } from 'src/app/server-browser/models/User';
+import { Client } from 'src/app/server-browser/models/Client';
 import { takeWhile, filter, take } from 'rxjs/operators';
+import { ServerBrowserService } from 'src/app/server-browser/services/server-browser.service';
+import { ClientAvatarCache } from 'src/app/server-browser/models/AvatarCacheModel';
 
 @Component({
   selector: 'sidenav-content',
@@ -31,12 +33,12 @@ export class SidenavContentComponent implements OnInit {
     return this._sidebarOpen;
   }
   private _sidebarOpen = true;
-  public usersList = new Map<number, User>();
-  public get usersArray(): User[] {
+  public usersList = new Map<number, Client>();
+  public get usersArray(): Client[] {
     return Array.from(this.usersList.values());
   }
 
-  constructor(private sbc: ServerBrowserCacheService) { }
+  constructor(private sbc: ServerBrowserCacheService, private sbs: ServerBrowserService) { }
 
   ngOnInit() {
     this.sbc.cacheUpdate$.subscribe((event: CacheUpdateEvent) => {
@@ -58,6 +60,7 @@ export class SidenavContentComponent implements OnInit {
       }
     });
 
+    // away status
     this.sbc.cacheInit$.pipe(take(1)).subscribe(init => {
       init.clients.forEach(user => this.usersList.set(user.databaseId, user));
       // this.usersList.forEach(user => {

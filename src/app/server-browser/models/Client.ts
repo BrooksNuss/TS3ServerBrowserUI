@@ -1,6 +1,6 @@
 import { AwayStatus } from './Events';
 
-export interface User {
+export interface Client {
   namespace: string;
   clid: number;
   cid: number;
@@ -33,4 +33,7 @@ export interface User {
   // serverGroupIconIds: Array<string>;
   awayStatus: AwayStatus;
   avatarGUID: string;
+  avatar: string;
 }
+
+export type AwayStatus = 'ACTIVE' | 'INACTIVE' | 'AWAY' | 'OFFLINE';

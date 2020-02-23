@@ -45,9 +45,9 @@ export class ServerBrowserSocketService {
       scs.deleteChannel(event);
     });
 
-    socket.fromEvent('clientupdate').subscribe((event: ClientUpdateEvent) => {
-      this.scs.updateClient(event);
-    });
+    // socket.fromEvent('clientupdate').subscribe((event: ClientUpdateEvent) => {
+    //   this.scs.updateClient(event);
+    // });
 
     socket.fromEvent('clientstatus').subscribe((event: ClientStatusEvent) => {
       this.scs.updateStatus(event);
