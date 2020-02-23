@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Socket } from 'ngx-socket-io';
 import { ServerBrowserCacheService } from './server-browser-cache.service';
-import { ClientConnectEvent, ClientDisconnectEvent, ClientMovedEvent, ChannelEditEvent, ChannelCreateEvent, ChannelMovedEvent, ChannelDeletedEvent, ClientUpdateEvent } from '../models/Events';
+import { ClientConnectEvent, ClientDisconnectEvent, ClientMovedEvent, ChannelEditEvent, ChannelCreateEvent, ChannelMovedEvent, ChannelDeletedEvent, ClientUpdateEvent, ClientStatusEvent } from '../models/Events';
 
 @Injectable()
 export class ServerBrowserSocketService {
@@ -47,7 +47,11 @@ export class ServerBrowserSocketService {
 
     socket.fromEvent('clientupdate').subscribe((event: ClientUpdateEvent) => {
       this.scs.updateClient(event);
-    })
+    });
+
+    socket.fromEvent('clientstatus').subscribe((event: ClientStatusEvent) => {
+      this.scs.updateStatus(event);
+    });
   }
 
   getClientMoved() {

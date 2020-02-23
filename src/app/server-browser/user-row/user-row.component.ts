@@ -17,8 +17,8 @@ export class UserRowComponent implements OnInit {
   constructor(private sbs: ServerBrowserService, private scs: ServerBrowserCacheService) { }
 
   ngOnInit() {
-    this.serverGroupIcons = this.scs.getServerGroupIcons(...this.userInfo.client_servergroups);
-    this.channelGroupIcons = this.scs.getChannelGroupIcons(this.userInfo.client_channel_group_id);
+    this.serverGroupIcons = this.scs.getServerGroupIcons(...this.userInfo.servergroups);
+    this.channelGroupIcons = this.scs.getChannelGroupIcons(this.userInfo.channelGroupId);
     this.serverGroupIcons = this.serverGroupIcons.filter(icon => {
       return icon.data != null && icon.iconId !== '0';
     });

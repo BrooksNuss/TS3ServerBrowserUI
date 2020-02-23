@@ -6,7 +6,7 @@ import { ServerGroup } from '../models/ServerGroup';
 import { Icon } from '../models/Icon';
 import { ChannelGroup } from '../models/ChannelGroup';
 import { Subject, Observable } from 'rxjs';
-import { ClientConnectEvent, ClientDisconnectEvent, ClientMovedEvent, ChannelEditEvent, CacheUpdateEvent, ChannelCreateEvent, ChannelMovedEvent, ChannelDeletedEvent, TS3ServerEvent, TS3ServerEventType, ClientUpdateEvent, CacheInitEvent } from '../models/Events';
+import { ClientConnectEvent, ClientDisconnectEvent, ClientMovedEvent, ChannelEditEvent, CacheUpdateEvent, ChannelCreateEvent, ChannelMovedEvent, ChannelDeletedEvent, TS3ServerEvent, TS3ServerEventType, ClientUpdateEvent, CacheInitEvent, ClientStatusEvent } from '../models/Events';
 
 @Injectable()
 export class ServerBrowserCacheService {
@@ -150,6 +150,17 @@ export class ServerBrowserCacheService {
     let cacheUpdateEvent = this.createCacheUpdateEvent(event.client.cid, event, 'clientupdate');
     this.channelCacheUpdates[event.client.cid].next(cacheUpdateEvent);
     this.cacheSubject.next(cacheUpdateEvent);
+  }
+
+  updateStatus(event: ClientStatusEvent) {
+    if (this.users.length) {
+      event.statusArr.forEach(status => {
+        const foundClient = this.users.find(client => client.clid === status.clid);
+        if (foundClient) {
+          foundClient.awayStatus = status.status;
+        }
+      });
+    }
   }
 
   private createCacheUpdateEvent(cid: number, event: TS3ServerEvent, type: TS3ServerEventType): CacheUpdateEvent {

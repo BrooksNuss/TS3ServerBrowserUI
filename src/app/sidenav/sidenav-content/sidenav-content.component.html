@@ -1,7 +1,11 @@
 <div class="contact-list">
   <div class="contact" *ngFor="let user of usersArray">
-    <div class="avatar"></div>
-    <span @fadeInOut *ngIf="sidebarOpen" class="contact-name">{{user.client_nickname}}</span>
+    <div class="avatar">
+      <div class="away-status-container">
+        <div class="away-status" [ngClass]="user.awayStatus"></div>
+      </div>
+    </div>
+    <span @fadeInOut *ngIf="sidebarOpen" class="contact-name">{{user.nickname}}</span>
 
   </div>
 </div>

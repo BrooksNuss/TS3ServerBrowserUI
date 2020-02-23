@@ -63,6 +63,11 @@ export interface ClientUpdateEvent {
   type: 'clientupdate';
 }
 
+export interface ClientStatusEvent {
+  statusArr: Array<ClientStatus>;
+  type: 'clientstatus';
+}
+
 export interface CacheInitEvent {
   clients: User[];
   channels: Channel[];
@@ -99,3 +104,10 @@ export type TS3ServerEventType = 'clientdisconnect' |
   'channelmoved' |
   'channeldelete' |
   'clientupdate';
+
+export interface ClientStatus {
+  clid: number;
+  status: AwayStatus;
+}
+
+export type AwayStatus = 'ACTIVE' | 'INACTIVE' | 'AWAY' | 'OFFLINE';

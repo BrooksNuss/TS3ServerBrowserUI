@@ -17,6 +17,42 @@
       background: lightblue;
       flex-shrink: 0;
       border-radius: 50%;
+      position: relative;
+
+      .away-status-container {
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        right: 0px;
+        bottom: 0px;
+        background: white;
+        position: absolute;
+
+        .away-status {
+          border-radius: 50%;
+          width: 14px;
+          height: 14px;
+          right: 2px;
+          bottom: 2px;
+          position: absolute;
+
+          &.ACTIVE {
+            background: green;
+          }
+
+          &.INACTIVE {
+            background: yellow;
+          }
+
+          &.AWAY {
+            background: red;
+          }
+
+          &.OFFLINE {
+            background: gray;
+          }
+        }
+      }
     }
 
     .contact-name {

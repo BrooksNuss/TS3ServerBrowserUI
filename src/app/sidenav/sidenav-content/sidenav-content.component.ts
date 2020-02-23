@@ -42,33 +42,33 @@ export class SidenavContentComponent implements OnInit {
     this.sbc.cacheUpdate$.subscribe((event: CacheUpdateEvent) => {
       if (event.event.type === 'clientconnect') {
         // if existed, update. if not existed, add. if disconnect, update
-        let existingUser = this.usersList.get(event.event.client.client_database_id);
+        let existingUser = this.usersList.get(event.event.client.databaseId);
         if (existingUser) {
-          existingUser.awayStatus = 1;
+          // existingUser.awayStatus = 1;
         } else {
-          event.event.client.awayStatus = 1;
-          this.usersList.set(event.event.client.client_database_id, event.event.client);
+          // event.event.client.awayStatus = 1;
+          this.usersList.set(event.event.client.databaseId, event.event.client);
         }
       } else if (event.event.type === 'clientdisconnect') {
         let existingUser = this.usersArray
-          .find(user => user.client_database_id === (event.event as ClientDisconnectEvent).client.clid);
+          .find(user => user.databaseId === (event.event as ClientDisconnectEvent).client.clid);
         if (existingUser) {
-          existingUser.awayStatus = 0;
+          // existingUser.awayStatus = 0;
         }
       }
     });
 
     this.sbc.cacheInit$.pipe(take(1)).subscribe(init => {
-      init.clients.forEach(user => this.usersList.set(user.client_database_id, user));
-      this.usersList.forEach(user => {
-        if (user.client_away) {
-          user.awayStatus = 3;
-        } else if (user.client_idle_time > 300000) {
-          user.awayStatus = 2;
-        } else {
-          user.awayStatus = 1;
-        }
-      });
+      init.clients.forEach(user => this.usersList.set(user.databaseId, user));
+      // this.usersList.forEach(user => {
+      //   if (user.client_away) {
+      //     // user.awayStatus = 3;
+      //   } else if (user.client_idle_time > 300000) {
+      //     // user.awayStatus = 2;
+      //   } else {
+      //     // user.awayStatus = 1;
+      //   }
+      // });
     });
   }
 }
