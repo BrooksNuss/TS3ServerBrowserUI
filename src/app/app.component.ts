@@ -1,8 +1,9 @@
-import { Component, ViewChild, OnDestroy, OnInit } from '@angular/core';
+import { Component, ViewChild, OnDestroy, OnInit, ViewContainerRef, AfterViewInit } from '@angular/core';
 import { MatSidenav, MatSidenavContainer } from '@angular/material/sidenav';
 import { transition, state, trigger, style, animate } from '@angular/animations';
 import { AudioService } from './services/audio.service';
 import { DataChannelService } from './services/dataChannel.service';
+import { OverlayService } from './services/overlay.service';
 
 @Component({
   selector: 'app-root',
@@ -26,17 +27,22 @@ import { DataChannelService } from './services/dataChannel.service';
     ]),
   ]
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   // @ViewChild('audioElement') audioElement: ElementRef<HTMLAudioElement>;
   @ViewChild('sidenavContainer') sidebarContainer: MatSidenavContainer;
   @ViewChild('sidenav') sidebar: MatSidenav;
+  @ViewChild('overlayLocation', { read: ViewContainerRef }) overlayLocation: ViewContainerRef;
   public sidebarOpen = true;
   title = 'ServerBrowserUI';
 
-  constructor(private audioService: AudioService, private dcs: DataChannelService) {}
+  constructor(private audioService: AudioService, private dcs: DataChannelService, private overlayService: OverlayService) {}
 
   ngOnInit() {
     // this.initializeAudio();
+  }
+
+  ngAfterViewInit() {
+    this.overlayService.overlayLocation = this.overlayLocation;
   }
 
   debugPause() {

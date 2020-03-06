@@ -17,6 +17,10 @@
       false
     ],
     "align": false,
-    "radix": false
+    "radix": false,
+    "typedef": [
+      true,
+      "call-signature"
+    ]
   }
 }

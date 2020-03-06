@@ -4,8 +4,8 @@ import { Type } from '@angular/core';
 export class TooltipConfig {
   type: Type<any>;
   config: OverlayConfig;
-  openEvent: string;
-  closeEvent?: string;
+  openEvent: keyof GlobalEventHandlersEventMap;
+  closeEvent?: keyof GlobalEventHandlersEventMap;
   openDelay = 1000;
   closeDelay = 500;
   overlayRef: OverlayRef;

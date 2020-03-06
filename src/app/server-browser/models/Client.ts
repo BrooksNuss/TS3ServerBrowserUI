@@ -35,5 +35,3 @@ export interface Client {
   avatarGUID: string;
   avatar: string;
 }
-
-export type AwayStatus = 'ACTIVE' | 'INACTIVE' | 'AWAY' | 'OFFLINE';

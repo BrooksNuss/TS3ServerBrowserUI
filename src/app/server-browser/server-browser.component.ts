@@ -132,12 +132,13 @@ export class ServerBrowserComponent implements OnInit {
         expiredList.push(client.databaseId);
       }
     });
-    this.sbs.getClientAvatars(expiredList).subscribe(res => {
-      res.forEach((avatar: ClientAvatarCache) => {
-        const client = this.scs.clientsMap.get(avatar.clientDBId);
-        client.avatar = avatar.avatarBuffer;
-        localStorage.setItem(`client_${client.databaseId}_avatar`, JSON.stringify(avatar));
-      });
-    });
+    // only get avatars when needed. if the avatar is not in the cache, ignore it until they try to load it
+    // this.sbs.getClientAvatars(expiredList).subscribe(res => {
+    //   res.forEach((avatar: ClientAvatarCache) => {
+    //     const client = this.scs.clientsMap.get(avatar.clientDBId);
+    //     client.avatar = avatar.avatarBuffer;
+    //     localStorage.setItem(`client_${client.databaseId}_avatar`, JSON.stringify(avatar));
+    //   });
+    // });
   }
 }
