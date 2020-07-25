@@ -1,4 +1,4 @@
-import { Client } from 'src/app/server-browser/models/Client';
+import { Client } from 'src/app/server-browser/models/business/Client';
 import { DataChannelService } from 'src/app/services/dataChannel.service';
 import { ContextMenuConfig } from '../models/TooltipConfig';
 

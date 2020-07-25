@@ -1,11 +1,18 @@
 import { Injectable } from '@angular/core';
-import { Channel } from '../models/Channel';
-import { Client } from '../models/Client';
-import { ServerGroup } from '../models/ServerGroup';
+import { Channel } from '../models/business/Channel';
+import { Client } from '../models/business/Client';
+import { ServerGroup } from '../models/business/ServerGroup';
 import { Icon } from '../models/Icon';
-import { ChannelGroup } from '../models/ChannelGroup';
-import { Subject, Observable } from 'rxjs';
-import { ClientConnectEvent, ClientDisconnectEvent, ClientMovedEvent, ChannelEditEvent, CacheUpdateEvent, ChannelCreateEvent, ChannelMovedEvent, ChannelDeletedEvent, TS3ServerEvent, TS3ServerEventType, ClientUpdateEvent, CacheInitEvent, ClientStatusEvent } from '../models/Events';
+import { ChannelGroup } from '../models/business/ChannelGroup';
+import { Subject } from 'rxjs';
+import { CacheUpdateEvent, TS3ServerEventType, ClientStatus } from '../models/Events';
+import { ClientAvatarCache } from '../models/AvatarCacheModel';
+import { AvatarListRequest } from '../models/AvatarListRequest';
+import { ServerBrowserDataService } from './server-browser-data.service';
+import { ChannelRowComponent } from '../channel-row/channel-row.component';
+import { ClientRowComponent } from '../client-row/client-row.component';
+import { ServerBrowserLookupResponse, ClientStatusResponse } from '../models/response/Responses';
+import { mapResponseToClient, mapResponseToChannel, mapResponseToServerGroup, mapResponseToChannelGroup } from 'src/app/shared/util/ResponseMappers';
 
 @Injectable()
 export class ServerBrowserCacheService {
@@ -13,7 +20,10 @@ export class ServerBrowserCacheService {
   clientsMap: Map<number, Client> = new Map();
   serverGroupsMap: Map<number, ServerGroup> = new Map();
   channelGroupsMap: Map<number, ChannelGroup> = new Map();
-  icons: Map<string, Icon> = new Map<string, Icon>();
+  // icons: Map<number, Icon> = new Map<number, Icon>();
+  channelRowMap: Map<number, ChannelRowComponent> = new Map<number, ChannelRowComponent>();
+  clientRowMap: Map<number, ClientRowComponent> = new Map<number, ClientRowComponent>();
+
   // setters and getters for mapping internal maps to arrays
   set channels(channelArr: Channel[]) {
     channelArr.forEach(c => {
@@ -48,133 +58,127 @@ export class ServerBrowserCacheService {
     return Array.from(this.channelGroupsMap.values());
   }
   // channel specific cache update observables. only subscribed to/emits events to its associated channel.
-  public channelCacheUpdates: {[key: string]: Subject<CacheUpdateEvent>} = {};
+  // public channelCacheUpdates: {[key: string]: Subject<CacheUpdateEvent>} = {};
   // general cache update observable. emits all cache update events, can be subscribed to anywhere.
   private cacheSubject = new Subject<CacheUpdateEvent>();
   public cacheUpdate$ = this.cacheSubject.asObservable();
-  private cacheInitSubject = new Subject<CacheInitEvent>();
-  public cacheInit$ = this.cacheInitSubject.asObservable();
+  private clientStatusSubject = new Subject();
+  public clientStatusUpdate$ = this.clientStatusSubject.asObservable();
+  // private cacheInitSubject = new Subject<CacheInitEvent>();
+  // public cacheInit$ = this.cacheInitSubject.asObservable();
 
-  constructor() { }
+  addChannelListener(cid: number, component: ChannelRowComponent): void {
+    this.channelRowMap.set(cid, component);
+  }
 
-  initCache(channels: Channel[], clients: Client[], serverGroups: ServerGroup[], channelGroups: ChannelGroup[], icons: Icon[]) {
-    this.channels = channels;
-    this.clients = clients;
-    this.serverGroups = serverGroups;
-    this.channelGroups = channelGroups;
-    icons.forEach(icon => {
-      this.icons.set(icon.iconId, icon);
+  removeChannelListener(cid: number): void {
+    this.channelRowMap.delete(cid);
+  }
+
+  addClientListener(databaseId: number, component: ClientRowComponent): void {
+    this.clientRowMap.set(databaseId, component);
+  }
+
+  removeClientListener(databaseId: number): void {
+    this.clientRowMap.delete(databaseId);
+  }
+
+  constructor(private sbs: ServerBrowserDataService) { }
+
+  initCache(initResponse: ServerBrowserLookupResponse): void {
+    initResponse.clients.forEach(client => {
+      this.clientsMap.set(client.databaseId, mapResponseToClient(client));
     });
-    this.channels.forEach(channel => {
-      this.channelCacheUpdates[channel.cid] = new Subject();
+    initResponse.channels.forEach(channel => {
+      this.channelsMap.set(channel.cid, mapResponseToChannel(channel));
     });
-    this.broadcastCacheInit();
+    initResponse.serverGroups.forEach(serverGroup => {
+      this.serverGroupsMap.set(serverGroup.sgid, mapResponseToServerGroup(serverGroup));
+    });
+    initResponse.channelGroups.forEach(channelGroup => {
+      this.channelGroupsMap.set(channelGroup.cgid, mapResponseToChannelGroup(channelGroup));
+    });
+    // set all channel parents/children
+    this.channelsMap.forEach(channel => {
+      if (channel.pid !== 0) {
+        const parent = this.channels.find(p => p.cid === channel.pid);
+        parent.addChannel(channel);
+      }
+    });
+    // set all channel clients/groups
+    this.clientsMap.forEach(client => {
+      this.setClientGroupsAndChannel(client);
+    });
+    // get all avatars (for now, needs to be lazified later)
+    this.getAllAvatars();
   }
 
-  getIcon(iconId: string) {
-    return this.icons.get(iconId);
+  setClientGroupsAndChannel(client: Client): void {
+    this.channels.find(channel => channel.cid === client.cid).addClient(client);
+    client.channelGroup = this.channelGroupsMap.get(client.channelGroupId);
+    client.serverGroups = this.serverGroups.filter(group => client.serverGroupIds.includes(group.sgid));
   }
 
-  getServerGroupIcons(...serverGroupIds: Array<number>): Array<Icon> {
-    return this.serverGroups.filter(group => serverGroupIds.includes(group.sgid))
-      .map(group => ({data: group.icon, iconId: group.iconid}));
+  connectUser(client: Client): void {
+    this.clientsMap.set(client.databaseId, client);
+    this.setClientGroupsAndChannel(client);
+    this.getAvatar(client);
+    // this.channelsMap.get(client.cid).addClient(client);
+    // this.channelRowMap.get(client.cid).addClient(client);
   }
 
-  getChannelGroupIcons(...channelGroupIds: Array<number>): Array<Icon> {
-    return this.channelGroups.filter(group => channelGroupIds.includes(group.cgid))
-      .map(group => ({data: group.icon, iconId: group.iconid}));
+  disconnectUser(client: Client): void {
+    const oldClient = this.clientsMap.get(this.clients.find(c => c.clid === client.clid).databaseId);
+    this.clientsMap.delete(oldClient.databaseId);
+    this.channelsMap.get(oldClient.cid).removeClient(oldClient);
+    this.channelRowMap.get(oldClient.cid).removeClient(oldClient);
   }
 
-  broadcastCacheInit() {
-    let event: CacheInitEvent = {
-      clients: this.clients,
-      channels: this.channels,
-      serverGroups: this.serverGroups,
-      channelGroups: this.channelGroups,
-      type: 'cacheinit'
-    };
-    this.cacheInitSubject.next(event);
+  moveUser(client: Client): void {
+    let cachedClient = this.clientsMap.get(client.databaseId);
+    let oldChannel = this.channelsMap.get(cachedClient.cid);
+    oldChannel.removeClient(client);
+    this.channelsMap.get(client.cid).addClient(cachedClient);
+    cachedClient.cid = client.cid;
+    this.channelRowMap.get(oldChannel.cid).removeClient(client);
+    // this.channelRowMap.get(client.cid).addClient(cachedClient);
   }
 
-  connectUser(event: ClientConnectEvent) {
-    // add user to cache, update channel user connected to.
-    // by default, event client has no cid, instead has a ctid
-    event.client.cid = event.client['ctid'];
-    // this.clients.push(event.client);
-    this.clientsMap.set(event.client.databaseId, event.client);
-    let cacheUpdateEvent = this.createCacheUpdateEvent(event.cid, event, 'clientconnect');
-    this.channelCacheUpdates[event.cid].next(cacheUpdateEvent);
-    this.cacheSubject.next(cacheUpdateEvent);
+  editChannel(channel: Channel) {
   }
 
-  disconnectUser(event: ClientDisconnectEvent) {
-    // remove user from cache, update channel user disconnected from.
-    // let clientIndex = this.clients.findIndex(client => client.clid === event.client.clid);
-    // this.users.splice(clientIndex);
-    this.clientsMap.delete(this.clients.find(c => c.clid === event.client.clid).databaseId);
-    let cacheUpdateEvent = this.createCacheUpdateEvent(event.event.cfid, event, 'clientdisconnect');
-    this.channelCacheUpdates[event.event.cfid].next(cacheUpdateEvent);
-    this.cacheSubject.next(cacheUpdateEvent);
-  }
-
-  moveUser(event: ClientMovedEvent) {
-    // remove client from previous channel, update client, add to new channel.
-    let oldChannel = this.channelsMap.get(event.client.cid);
-    oldChannel.clients.splice(oldChannel.clients.findIndex(user => user.clid === event.client.clid));
-    this.clientsMap.get(event.client.databaseId).cid = event.channel.cid;
-    this.channelsMap.get(event.channel.cid).clients.push(this.clientsMap.get(event.client.databaseId));
-    let cacheUpdateEvent = this.createCacheUpdateEvent(event.channel.cid, event, 'clientmoved');
-    this.channelCacheUpdates[event.channel.cid].next(cacheUpdateEvent);
-    this.channelCacheUpdates[oldChannel.cid].next(cacheUpdateEvent);
-    this.cacheSubject.next(cacheUpdateEvent);
-  }
-
-  editChannel(event: ChannelEditEvent) {
-    // set channel as new channel
-    let cacheUpdateEvent = this.createCacheUpdateEvent(event.channel.cid, event, 'channeledit');
-    this.channelCacheUpdates[event.channel.cid].next(cacheUpdateEvent);
-    this.cacheSubject.next(cacheUpdateEvent);
-  }
-
-  createChannel(event: ChannelCreateEvent) {
-    // for a temporary channel, we need to move the user into it
-    let parentChannel = this.channelsMap.get(event.cpid);
-    event.channel.subChannels = [];
-    event.channel.clients = [];
-    // this.channels.push(event.channel);
-    this.channelsMap.set(event.channel.cid, event.channel);
-    let cacheUpdateEvent = this.createCacheUpdateEvent(event.channel.cid, event, 'channelcreate');
-    if (parentChannel) {
-      this.channelCacheUpdates[event.cpid].next(cacheUpdateEvent);
+  createChannel(channel: Channel) {
+    this.channelsMap.set(channel.cid, channel);
+    const parent = this.channelsMap.get(channel.pid);
+    if (parent) {
+      parent.addChannel(channel);
+      // this.channelRowMap.get(channel.pid).addChannel(channel);
     }
-    this.channelCacheUpdates[event.channel.cid] = new Subject();
+    let cacheUpdateEvent = this.createCacheUpdateEvent(channel.cid, 'channelcreate');
     this.cacheSubject.next(cacheUpdateEvent);
   }
 
-  moveChannel(event: ChannelMovedEvent) {
-    // update cache, old parent, new parent, and channel
-    let oldParent = this.channelsMap.get(event.channel.cid);
-    this.channelsMap.set(event.channel.cid, event.channel);
-    let cacheUpdateEvent = this.createCacheUpdateEvent(event.channel.cid, event, 'channelmoved');
-    if (event.parent) {
-      this.channelCacheUpdates[event.parent.cid].next(cacheUpdateEvent);
-    }
-    if (oldParent && oldParent.pid !== 0) {
-      this.channelCacheUpdates[oldParent.pid].next(cacheUpdateEvent);
-    }
-    this.channelCacheUpdates[event.channel.cid].next(cacheUpdateEvent);
+  moveChannel(channel: Channel) {
+    // not finished
+    let cachedChannel = this.channelsMap.get(channel.cid);
+    let oldParent = this.channelsMap.get(cachedChannel.pid);
+    cachedChannel.pid = channel.pid;
+    this.channelsMap.get(channel.pid).addChannel(cachedChannel);
+    oldParent.removeChannel(cachedChannel);
+    let cacheUpdateEvent = this.createCacheUpdateEvent(channel.cid, 'channelmoved');
     this.cacheSubject.next(cacheUpdateEvent);
   }
 
-  deleteChannel(event: ChannelDeletedEvent) {
-    // update cache, parent
-    let parentId = this.channelsMap.get(event.cid).pid;
-    this.channelsMap.delete(event.cid);
-    let cacheUpdateEvent = this.createCacheUpdateEvent(event.cid, event, 'channeldelete');
-    if (parentId) {
-      this.channelCacheUpdates[parentId].next(cacheUpdateEvent);
+  deleteChannel(channel: Channel) {
+    let cachedChannel = this.channelsMap.get(channel.cid);
+    const parent = this.channelsMap.get(cachedChannel.pid);
+    if (parent) {
+      parent.removeChannel(cachedChannel);
+      this.channelRowMap.get(cachedChannel.pid).removeChannel(cachedChannel.cid);
     }
-    this.cacheSubject.next(cacheUpdateEvent);
+    this.channelsMap.delete(channel.cid);
+    const updateEvent = this.createCacheUpdateEvent(channel.cid, 'channeldelete');
+    this.cacheSubject.next(updateEvent);
   }
 
   // this needs to be more specific. certain field updates have to be handled differently from others
@@ -187,26 +191,74 @@ export class ServerBrowserCacheService {
   //   this.cacheSubject.next(cacheUpdateEvent);
   // }
 
-  updateClientStatus(event: ClientStatusEvent) {
-    event.clients.forEach(client => {
-      this.clientsMap.get(client.clientDBId).awayStatus = client.status;
-    });
-  }
+  // updateClientStatus(event: ClientStatusEvent) {
+  //   event.statusList.forEach(client => {
+  //     const foundClient = this.clientsMap.get(client.clientDBId);
+  //     if (foundClient) {
+  //       foundClient.awayStatus = client.status;
+  //     }
+  //   });
+  // }
 
-  updateStatus(event: ClientStatusEvent) {
+  updateClientStatus(clients: ClientStatus[]): void {
     if (this.clients.length) {
-      event.clients.forEach(status => {
-        const foundClient = this.clients.find(client => client.clid === status.clid);
+      clients.forEach(status => {
+        const foundClient = this.clients.find(client => client.databaseId === status.clientDBId);
         if (foundClient) {
           foundClient.awayStatus = status.status;
         }
       });
+      this.clientStatusSubject.next();
     }
   }
 
-  private createCacheUpdateEvent(cid: number, event: TS3ServerEvent, type: TS3ServerEventType): CacheUpdateEvent {
-    let cacheUpdate = {cid, event};
-    cacheUpdate.event.type = type;
+  private createCacheUpdateEvent(cid: number, type: TS3ServerEventType): CacheUpdateEvent {
+    let cacheUpdate = {cid, type};
     return cacheUpdate;
+  }
+
+  checkAvatar(client: Client): boolean {
+    let expired = false;
+    const key = `client_${client.databaseId}_avatar`;
+    const storageItem = localStorage.getItem(key);
+    if (storageItem) {
+      const parsedStorageItem: ClientAvatarCache = JSON.parse(storageItem);
+      if (client.avatarGUID === parsedStorageItem.avatarGUID) {
+        client.avatar = parsedStorageItem.avatarBuffer;
+      } else {
+        expired = true;
+        localStorage.removeItem(key);
+      }
+    } else {
+      expired = true;
+    }
+    return expired;
+  }
+
+  getAvatar(client: Client): void {
+    if (this.checkAvatar(client)) {
+      this.getAvatarList([client.databaseId]);
+    }
+  }
+
+  getAllAvatars(): void {
+    const expired: Array<number> = [];
+    this.clientsMap.forEach(client => {
+      if (this.checkAvatar(client)) {
+        expired.push(client.databaseId);
+      }
+    });
+    this.getAvatarList(expired);
+  }
+
+  getAvatarList(clientIds: Array<number>): void {
+    const expiredListRequest: AvatarListRequest = {clientIds};
+    this.sbs.getClientAvatars(expiredListRequest).subscribe(res => {
+      res.avatars.forEach((avatar: ClientAvatarCache) => {
+        const c = this.clientsMap.get(avatar.clientDBId);
+        c.avatar = avatar.avatarBuffer;
+        localStorage.setItem(`client_${avatar.clientDBId}_avatar`, JSON.stringify(avatar));
+      });
+    });
   }
 }

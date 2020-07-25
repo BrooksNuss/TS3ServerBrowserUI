@@ -1,12 +1,12 @@
-<div class="user-row" style="padding-left: 20px;" [tooltip-menu]="tooltipConfig">
+<div class="user-row" style="padding-left: 20px;">
   <div class="row-header">
-    <p>{{userInfo.nickname}}</p>
+    <p>{{clientInfo.nickname}}</p>
     <div class="icon-container">
       <ng-container>
-        <img class="channel-group" *ngFor="let icon of channelGroupIcons" tsIcon [icon]="icon.data">
+        <img class="channel-group" tsIcon [icon]="clientInfo.channelGroup?.icon">
       </ng-container>
-      <ng-container>
-        <img class="server-group" *ngFor="let icon of serverGroupIcons" tsIcon [icon]="icon.data">
+      <ng-container *ngFor="let group of clientInfo.serverGroups">
+        <img class="server-group" *ngIf="group.icon" tsIcon [icon]="group.icon">
       </ng-container>
     </div>
   </div>

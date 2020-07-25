@@ -1,56 +1,65 @@
 import { Injectable } from '@angular/core';
 import { Socket } from 'ngx-socket-io';
 import { ServerBrowserCacheService } from './server-browser-cache.service';
-import { ClientConnectEvent, ClientDisconnectEvent, ClientMovedEvent, ChannelEditEvent, ChannelCreateEvent, ChannelMovedEvent, ChannelDeletedEvent, ClientUpdateEvent, ClientStatusEvent } from '../models/Events';
+import { mapResponseToClient, mapResponseToChannel } from 'src/app/shared/util/ResponseMappers';
+import { ClientResponse, ChannelResponse, ClientStatusResponse } from '../models/response/Responses';
 
 @Injectable()
 export class ServerBrowserSocketService {
-  private standardEvents = [
-    'clientconnect',
-    'clientdisconnect',
-    'clientmoved',
-    'serveredit',
-    'channeledit',
-    'channelcreate',
-    'channelmoved',
-    'channeldelete'
-  ];
+  // private standardEvents = [
+  //   'clientconnect',
+  //   'clientdisconnect',
+  //   'clientmoved',
+  //   'serveredit',
+  //   'channeledit',
+  //   'channelcreate',
+  //   'channelmoved',
+  //   'channeldelete'
+  // ];
 
   constructor(private socket: Socket, private scs: ServerBrowserCacheService) {
-    socket.fromEvent('clientconnect').subscribe((event: ClientConnectEvent) => {
-      scs.connectUser(event);
+    socket.fromEvent('clientconnect').subscribe((event: ClientResponse) => {
+      let client = mapResponseToClient(event);
+      scs.connectUser(client);
     });
 
-    socket.fromEvent('clientdisconnect').subscribe((event: ClientDisconnectEvent) => {
-      scs.disconnectUser(event);
+    socket.fromEvent('clientdisconnect').subscribe((event: ClientResponse) => {
+      let cfid = event.cfid;
+      let client = mapResponseToClient(event);
+      scs.disconnectUser(client);
     });
 
-    socket.fromEvent('clientmoved').subscribe((event: ClientMovedEvent) => {
-      scs.moveUser(event);
+    socket.fromEvent('clientmoved').subscribe((event: ClientResponse) => {
+      let client = mapResponseToClient(event);
+      scs.moveUser(client);
     });
 
-    socket.fromEvent('channeledit').subscribe((event: ChannelEditEvent) => {
-      scs.editChannel(event);
+    socket.fromEvent('channeledit').subscribe((event: ChannelResponse) => {
+      let channel = mapResponseToChannel(event);
+      scs.editChannel(channel);
     });
 
-    socket.fromEvent('channelcreate').subscribe((event: ChannelCreateEvent) => {
-      scs.createChannel(event);
+    socket.fromEvent('channelcreate').subscribe((event: ChannelResponse) => {
+      let channel = mapResponseToChannel(event);
+      scs.createChannel(channel);
     });
 
-    socket.fromEvent('channelmoved').subscribe((event: ChannelMovedEvent) => {
-      scs.moveChannel(event);
+    socket.fromEvent('channelmoved').subscribe((event: ChannelResponse) => {
+      let channel = mapResponseToChannel(event);
+      scs.moveChannel(channel);
     });
 
-    socket.fromEvent('channeldelete').subscribe((event: ChannelDeletedEvent) => {
-      scs.deleteChannel(event);
+    socket.fromEvent('channeldelete').subscribe((event: ChannelResponse) => {
+      let channel = mapResponseToChannel(event);
+      scs.deleteChannel(channel);
     });
 
     // socket.fromEvent('clientupdate').subscribe((event: ClientUpdateEvent) => {
     //   this.scs.updateClient(event);
     // });
 
-    socket.fromEvent('clientstatus').subscribe((event: ClientStatusEvent) => {
-      this.scs.updateStatus(event);
+    socket.fromEvent('clientstatus').subscribe((event: ClientStatusResponse) => {
+      this.scs.updateClientStatus(event.clients);
     });
   }
 

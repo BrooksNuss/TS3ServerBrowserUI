@@ -9,17 +9,17 @@
       <button mat-raised-button>Settings</button>
     </div>
   </mat-toolbar>
-  <mat-sidenav-container #sidenavContainer [autosize]="false" class="page-content">
-    <mat-sidenav #sidenav mode="side" opened class="sidebar" [@sidebarMinimize]="sidebarOpen ? 'open' : 'closed'">
+  <mat-drawer-container #sidenavContainer [autosize]="false" class="page-content">
+    <mat-drawer #sidenav mode="side" opened class="sidebar" [@sidebarMinimize]="sidebarOpen ? 'open' : 'closed'">
       <sidenav-content [sidebarOpen]="sidebarOpen"></sidenav-content>
-    </mat-sidenav>
-    <mat-sidenav-content [@sidebarMinimizeContent]="sidebarOpen ? 'open' : 'closed'">
+    </mat-drawer>
+    <mat-drawer-content [@sidebarMinimizeContent]="sidebarOpen ? 'open' : 'closed'">
       <server-browser></server-browser>
       <button (click)="initializeAudio()">Connect Audio</button>
       <button (click)="debugPause()">Click here to debug</button>
       <button (click)="closeConnection()">close connection</button>
       <!-- <audio #audioElement autoplay="true" muted="false"></audio> -->
-    </mat-sidenav-content>
-  </mat-sidenav-container>
+    </mat-drawer-content>
+  </mat-drawer-container>
   <ng-template #overlayLocation></ng-template>
 </div>

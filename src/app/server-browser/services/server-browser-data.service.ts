@@ -2,14 +2,12 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ServerGroupResponse } from '../models/ServerGroupResponse';
-import { ChannelGroupResponse } from '../models/ChannelGroupResponse';
-import { Client } from '../models/Client';
-import { ChannelResponse } from '../models/ChannelResponse';
-import { ServerBrowserLookup } from '../models/Lookup';
-import { ClientAvatarCache } from '../models/AvatarCacheModel';
+import { Client } from '../models/business/Client';
+import { AvatarListRequest } from '../models/AvatarListRequest';
+import { AvatarListResponse } from '../models/AvatarListResponse';
+import { ServerGroupResponse, ChannelGroupResponse, ChannelResponse, ServerBrowserLookupResponse } from '../models/response/Responses';
 @Injectable()
-export class ServerBrowserService {
+export class ServerBrowserDataService {
 
   private apiPath = environment.svcUrl + ':' + environment.svcPort + environment.svcApiPath;
 
@@ -31,11 +29,11 @@ export class ServerBrowserService {
     return this.http.get<ChannelGroupResponse[]>(this.apiPath + '/groups/channel/list');
   }
 
-  getLookup(): Observable<ServerBrowserLookup> {
-    return this.http.get<ServerBrowserLookup>(this.apiPath + '/lookup');
+  getLookup(): Observable<ServerBrowserLookupResponse> {
+    return this.http.get<ServerBrowserLookupResponse>(this.apiPath + '/lookup');
   }
 
-  getClientAvatars(clientDBIdList: number[]): Observable<ClientAvatarCache[]> {
-    return this.http.post<ClientAvatarCache[]>(this.apiPath + '/users/avatar', clientDBIdList);
+  getClientAvatars(clientDBIdList: AvatarListRequest): Observable<AvatarListResponse> {
+    return this.http.post<AvatarListResponse>(this.apiPath + '/users/avatar', clientDBIdList);
   }
 }

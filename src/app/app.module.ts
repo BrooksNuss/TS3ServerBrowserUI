@@ -6,7 +6,7 @@ import { AppComponent } from './app.component';
 import { ClientRowComponent } from './server-browser/client-row/client-row.component';
 import { ServerBrowserComponent } from './server-browser/server-browser.component';
 import { ChannelRowComponent } from './server-browser/channel-row/channel-row.component';
-import { ServerBrowserService } from './server-browser/services/server-browser.service';
+import { ServerBrowserDataService } from './server-browser/services/server-browser-data.service';
 import { SocketIoModule } from 'ngx-socket-io';
 import { environment } from 'src/environments/environment';
 import { ServerBrowserCacheService } from './server-browser/services/server-browser-cache.service';
@@ -24,6 +24,9 @@ import { TooltipMenuComponent } from './shared/tooltip-context-menu/tooltip-cont
 import { TooltipMenuDirective } from './shared/tooltip-menu.directive';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
+import { AudioService } from './services/audio.service';
+import { DataChannelService } from './services/dataChannel.service';
+import { OverlayService } from './services/overlay.service';
 
 const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, options: {}};
 
@@ -52,10 +55,13 @@ const socketConfig = {url: environment.svcUrl + ':' + environment.socketPort, op
     PortalModule
   ],
   providers: [
-    ServerBrowserService,
+    ServerBrowserDataService,
     ServerBrowserCacheService,
     ServerBrowserSocketService,
-    RTCService
+    RTCService,
+    AudioService,
+    DataChannelService,
+    OverlayService
   ],
   bootstrap: [AppComponent]
 })
