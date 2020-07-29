@@ -4,11 +4,25 @@ import { Channel } from '../models/business/Channel';
 import { Subscription } from 'rxjs';
 import { DataChannelService } from 'src/app/services/dataChannel.service';
 import { Client } from '../models/business/Client';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
 @Component({
   selector: 'channel-row',
   templateUrl: './channel-row.component.html',
-  styleUrls: ['./channel-row.component.scss']
+  styleUrls: ['./channel-row.component.scss'],
+  animations: [
+    trigger('collapseAnimation', [
+      // state('true', style({height: '0px'})),
+      // state('false', style({height: '*'}))
+      transition(':enter', [
+        style({height: '0', opacity: '0', transform: 'scaleY(0) translate(0px, -10px)'}),
+        animate('.2s ease-out', style({height: '*', opacity: '1', transform: 'scaleY(1) translate(0px, 0px)'}))
+      ]),
+      transition(':leave', [
+        animate('.2s ease-out', style({height: '0px', opacity: '0', transform: 'scaleY(0) translate(0px, -10px)'}))
+      ])
+    ])
+  ]
 })
 export class ChannelRowComponent implements OnInit, OnDestroy {
   // @Input() channelInfo: ChannelResponse;
@@ -17,12 +31,14 @@ export class ChannelRowComponent implements OnInit, OnDestroy {
   @Input() channel: Channel;
   isSubChannel = false;
   collapsed = false;
+  isSpacer = false;
   constructor(private scs: ServerBrowserCacheService, private dataChannelService: DataChannelService) { }
 
   ngOnInit() {
     // console.log(this.users);
     this.scs.addChannelListener(this.channel.cid, this);
     this.isSubChannel = this.channel.pid !== 0;
+    this.isSpacer = /\[.*spacer.*\]/.test(this.channel.name);
     // this.cacheSubscription = this.scs.channelCacheUpdates[this.channel.cid].subscribe(cacheUpdate => {
     //   console.log('channel row ' + this.channel.cid + ' received event: ');
     //   console.log(cacheUpdate);
@@ -90,5 +106,9 @@ export class ChannelRowComponent implements OnInit, OnDestroy {
 
   joinChannel(): void {
     this.dataChannelService.joinChannel(this.channel.cid);
+  }
+
+  toggleCollapse() {
+    this.collapsed = !this.collapsed;
   }
 }

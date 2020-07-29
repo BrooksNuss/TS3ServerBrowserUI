@@ -1,18 +1,24 @@
-<div class="channel-row" [ngClass]="{'sub-channel': isSubChannel}" (dblclick)="joinChannel()">
-  <div class="row-header">
-    <div class="row-collapse" [ngStyle]="{'flip-arrow': 'collapsed'}" (click)="collapsed = !collapsed"></div>
-    <p>{{channel.name}}</p>
-    <div>
-      <!-- <ng-container *ngFor="let icon of channelInfo.getIcon">
-      </ng-container> -->
+<div class="spacer" *ngIf="isSpacer; else notSpacer">
+  here be spacers
+</div>
+<ng-template #notSpacer>
+  <div class="channel-row" [ngClass]="{'sub-channel': isSubChannel}" (dblclick)="joinChannel()">
+    <div class="row-header">
+      <mat-icon class="row-collapse" [ngClass]="{'flip-arrow': collapsed}" (click)="toggleCollapse()">keyboard_arrow_down</mat-icon>
+      <mat-icon class="channel-icon-left" svgIcon="channel-subscribed"></mat-icon>
+      <p>{{channel.name}}</p>
+      <div>
+        <!-- <ng-container *ngFor="let icon of channelInfo.getIcon">
+        </ng-container> -->
+      </div>
+    </div>
+    <div class="collapseWrapper" *ngIf="!collapsed" [@collapseAnimation]="collapsed">
+      <ng-container *ngFor="let client of channel.clients">
+        <client-row [clientInfo]="client" [channel]="this.channel"></client-row>
+      </ng-container>
+      <ng-container *ngFor="let c of channel.subChannels">
+        <channel-row [channel]="c"></channel-row>
+      </ng-container>
     </div>
   </div>
-  <ng-container *ngIf="!collapsed">
-    <ng-container *ngFor="let client of channel.clients">
-      <client-row [clientInfo]="client" [channel]="this.channel"></client-row>
-    </ng-container>
-    <ng-container *ngFor="let c of channel.subChannels">
-      <channel-row [channel]="c"></channel-row>
-    </ng-container>
-  </ng-container>
-</div>
+</ng-template>

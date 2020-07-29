@@ -2,10 +2,25 @@
   .row-header {
     display: flex;
     flex-direction: row;
-    // justify-content: space-between;
+    align-items: center;
+
+    .row-collapse {
+      transition: transform .25s;
+      &.flip-arrow {
+        transform: rotate(-90deg);
+      }
+    }
+
+    .channel-icon-left {
+      margin: 0px 5px;
+    }
   }
 
   &.sub-channel {
     margin-left: 20px;
+  }
+
+  .collapseWrapper {
+    transform-origin: top;
   }
 }

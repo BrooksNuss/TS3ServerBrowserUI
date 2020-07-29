@@ -4,6 +4,8 @@ import { transition, state, trigger, style, animate } from '@angular/animations'
 import { AudioService } from './services/audio.service';
 import { DataChannelService } from './services/dataChannel.service';
 import { OverlayService } from './services/overlay.service';
+import { MatIconRegistry } from '@angular/material/icon';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-root',
@@ -35,7 +37,15 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   public sidebarOpen = true;
   title = 'ServerBrowserUI';
 
-  constructor(private audioService: AudioService, private dcs: DataChannelService, private overlayService: OverlayService) {}
+  constructor(
+    private audioService: AudioService,
+    private dcs: DataChannelService,
+    private overlayService: OverlayService,
+    private iconRegistry: MatIconRegistry,
+    private sanitizer: DomSanitizer
+  ) {
+    iconRegistry.addSvgIcon('channel-subscribed', sanitizer.bypassSecurityTrustResourceUrl('../assets/svg/channel_green_subscribed.svg'));
+  }
 
   ngOnInit() {
     // this.initializeAudio();
