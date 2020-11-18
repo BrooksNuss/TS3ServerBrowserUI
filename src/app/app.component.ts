@@ -31,9 +31,9 @@ import { DomSanitizer } from '@angular/platform-browser';
 })
 export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   // @ViewChild('audioElement') audioElement: ElementRef<HTMLAudioElement>;
-  @ViewChild('sidenavContainer') sidebarContainer: MatSidenavContainer;
-  @ViewChild('sidenav') sidebar: MatSidenav;
-  @ViewChild('overlayLocation', { read: ViewContainerRef }) overlayLocation: ViewContainerRef;
+  @ViewChild('sidenavContainer', { static: true }) sidebarContainer: MatSidenavContainer;
+  @ViewChild('sidenav', { static: true }) sidebar: MatSidenav;
+  @ViewChild('overlayLocation', { read: ViewContainerRef, static: true }) overlayLocation: ViewContainerRef;
   public sidebarOpen = true;
   title = 'ServerBrowserUI';
 
