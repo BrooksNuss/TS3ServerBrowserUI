@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { SidenavContentComponent } from './sidenav-content.component';
 
@@ -6,7 +6,7 @@ describe('SidenavContentComponent', () => {
   let component: SidenavContentComponent;
   let fixture: ComponentFixture<SidenavContentComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ SidenavContentComponent ]
     })

@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ChannelRowComponent } from './channel-row.component';
 
@@ -6,7 +6,7 @@ describe('ChannelRowComponent', () => {
   let component: ChannelRowComponent;
   let fixture: ComponentFixture<ChannelRowComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ ChannelRowComponent ]
     })
