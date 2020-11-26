@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { RTCService } from './rtc.service';
 import { DataChannelService } from './dataChannel.service';
+import { RTCCreateConnectionResponse } from '../shared/models/RTCResponses';
 
 @Injectable()
 export class AudioService {
@@ -44,11 +45,11 @@ export class AudioService {
         ]
       }]
     });
-    this.rtcService.initiateConnection().subscribe((offer: RTCPeerConnection) => {
-      let id = (offer as any).id;
+    this.rtcService.initiateConnection().subscribe((offer: RTCCreateConnectionResponse) => {
+      let id = offer.id;
       this.setupDataChannel();
       // set remote description
-      this.remoteConnection.setRemoteDescription(offer.localDescription).then(() => {
+      this.remoteConnection.setRemoteDescription(offer.offer).then(() => {
         // add our media capabilities
         this.remoteConnection.addTrack(this.sendAudioNode.stream.getAudioTracks()[0], this.sendAudioNode.stream);
         // create answer
