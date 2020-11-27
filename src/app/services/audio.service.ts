@@ -57,13 +57,16 @@ export class AudioService {
           this.remoteConnection.setLocalDescription(answer).then(() => {
             this.rtcService.sendAnswer(id, this.remoteConnection.localDescription).subscribe(res => {
               this.trackReady = true;
+              // this needs to be cleaned up
               this.remoteConnection.onconnectionstatechange = e => {
                 if (this.remoteConnection.connectionState === 'connected') {
                   this.connectedToAudio = true;
+                  this.setupVadMessageHandler();
                   this.initAudioOutput();
                 }
               };
               if (this.remoteConnection.connectionState === 'connected') {
+                this.setupVadMessageHandler();
                 this.connectedToAudio = true;
                 this.initAudioOutput();
               }
@@ -84,7 +87,6 @@ export class AudioService {
     this.sendAudioNode = this.audioContext.createMediaStreamDestination();
     this.audioContext.audioWorklet.addModule('../assets/Scripts/vad.js').then(() => {
       this.vadNode = new AudioWorkletNode(this.audioContext, 'VadProcessor', {parameterData: {sensitivity: .01, falloff: 1000}});
-      this.handleVadMessage();
       inputNode.connect(this.vadNode);
       this.vadNode.connect(this.inputVolumeNode);
       // let sensitivityParam = (this.vadNode.parameters as any).get('sensitivity');
@@ -116,9 +118,12 @@ export class AudioService {
     });
   }
 
-  handleVadMessage() {
+  setupVadMessageHandler() {
     this.vadNode.port.onmessage = msg => {
-      if (this.trackReady && !this.senderTrack) {
+      if (!this.trackReady) {
+        return;
+      }
+      if (!this.senderTrack) {
         this.senderTrack = this.remoteConnection.getSenders()[0].track;
       }
       if (msg.data === 'activate') {

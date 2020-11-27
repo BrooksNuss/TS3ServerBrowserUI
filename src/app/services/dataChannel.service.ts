@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
-import { DataChannelMessage } from '../server-browser/models/Events';
+import { DataChannelMessage, TSMessageDataType } from '../shared/models/RTCResponses';
 
 @Injectable()
 export class DataChannelService {
   private dataChannel: RTCDataChannel;
-  private active = false;
   public clientId: number;
   constructor() { }
 
@@ -28,19 +27,15 @@ export class DataChannelService {
       this.dataChannel.onmessage = message => {
         let parsedData: DataChannelMessage = JSON.parse(message.data);
         switch (parsedData.type) {
-          case 'TALKING_CLIENT': console.log('talking client: ' + parsedData.data); break;
-          case 'CLIENT_ID': this.clientId = parseInt(parsedData.data); break;
+          case TSMessageDataType.TALKING_CLIENT: console.log('talking client: ' + parsedData.data); break;
+          case TSMessageDataType.CLIENT_ID: this.clientId = parseInt(parsedData.data); break;
         }
       };
     }
   }
 
-  public setActive(active: boolean) {
-    this.active = active;
-  }
-
-  sendDataChannelMessage<T>(messageType: string, messageData?: T) {
-    if (this.active && this.dataChannel) {
+  sendDataChannelMessage<T>(messageType: number, messageData?: T) {
+    if (this.dataChannel) {
       let event: DataChannelMessage<T> = { type: messageType, data: messageData };
       this.dataChannel.send(JSON.stringify(event));
     }
@@ -50,30 +45,30 @@ export class DataChannelService {
   // basically, all user functionality. only query functionalities not handled here
 
   closeConnection() {
-    this.sendDataChannelMessage('DISCONNECT');
+    this.sendDataChannelMessage(TSMessageDataType.DISCONNECT);
   }
 
   muteInput() {
-    this.sendDataChannelMessage('TOGGLE_MUTE_INPUT');
+    this.sendDataChannelMessage(TSMessageDataType.TOGGLE_MUTE_INPUT);
   }
 
   muteOutput() {
-    this.sendDataChannelMessage('TOGGLE_MUTE_OUTPUT');
+    this.sendDataChannelMessage(TSMessageDataType.TOGGLE_MUTE_OUTPUT);
   }
 
   activateVAD() {
-    this.sendDataChannelMessage('VAD_ACTIVE');
+    this.sendDataChannelMessage(TSMessageDataType.VAD_ACTIVE);
   }
 
   deactivateVAD() {
-    this.sendDataChannelMessage('VAD_INACTIVE');
+    this.sendDataChannelMessage(TSMessageDataType.VAD_INACTIVE);
   }
 
   joinChannel(cid: number) {
-    this.sendDataChannelMessage('JOINCHANNEL', cid);
+    this.sendDataChannelMessage(TSMessageDataType.JOIN_CHANNEL, cid);
   }
 
   muteClientLocally(cid: number) {
-    this.sendDataChannelMessage('MUTE_CLIENT_LOCAL', cid);
+    this.sendDataChannelMessage(TSMessageDataType.MUTE_CLIENT_LOCALLY, cid);
   }
 }
